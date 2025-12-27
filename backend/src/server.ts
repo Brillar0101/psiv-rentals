@@ -10,6 +10,7 @@ import pool from './config/database';
 import authRoutes from './routes/auth.routes';
 import equipmentRoutes from './routes/equipment.routes';
 import categoryRoutes from './routes/category.routes';
+import bookingRoutes from './routes/booking.routes';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,9 @@ app.use('/api/equipment', equipmentRoutes);
 
 // Category routes
 app.use('/api/categories', categoryRoutes);
+
+// Booking routes
+app.use('/api/bookings', bookingRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
