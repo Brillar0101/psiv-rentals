@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import pool from './config/database';
 import authRoutes from './routes/auth.routes';
+import equipmentRoutes from './routes/equipment.routes';
+import categoryRoutes from './routes/category.routes';
 
 // Load environment variables
 dotenv.config();
@@ -41,6 +43,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Authentication routes
 app.use('/api/auth', authRoutes);
+
+// Equipment routes
+app.use('/api/equipment', equipmentRoutes);
+
+// Category routes
+app.use('/api/categories', categoryRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
