@@ -7,6 +7,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import pool from './config/database';
+import authRoutes from './routes/auth.routes';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,9 @@ app.use(express.urlencoded({ extended: true }));
 // =============================================
 // ROUTES
 // =============================================
+
+// Authentication routes
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
