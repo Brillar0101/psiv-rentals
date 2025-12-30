@@ -74,7 +74,7 @@ export const EquipmentCard: React.FC<EquipmentCardProps> = ({
         {/* Price and rating */}
         <View style={styles.footer}>
           <Text style={styles.price}>${dailyRate}/day</Text>
-          {rating && (
+          {rating && rating > 0 && (
             <View style={styles.rating}>
               <Text style={styles.ratingText}>⭐ {rating.toFixed(1)}</Text>
             </View>
