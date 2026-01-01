@@ -47,16 +47,16 @@ export default function ProfileScreen() {
       section: 'Bookings',
       items: [
         { icon: '📅', title: 'Active Bookings', screen: 'ActiveBookings', available: true },
-        { icon: '📋', title: 'Past Bookings', screen: 'MyBookingsPast', available: false },
-        { icon: '❤️', title: 'Favorites', screen: 'Favorites', available: false },
+        { icon: '📋', title: 'Past Bookings', screen: 'PastBookings', available: true },
+        { icon: '❤️', title: 'Favorites', screen: 'Favorites', available: true },
       ],
     },
     {
       section: 'Support',
       items: [
         { icon: '❓', title: 'Help Center', screen: 'HelpCenter', available: true },
-        { icon: '📞', title: 'Contact Support', screen: 'ContactSupport', available: false },
-        { icon: '⭐', title: 'Rate App', screen: 'RateApp', available: false },
+        { icon: '📞', title: 'Contact Support', screen: 'ContactSupport', available: true },
+        { icon: '⭐', title: 'Rate App', screen: 'RateApp', available: true },
       ],
     },
     {

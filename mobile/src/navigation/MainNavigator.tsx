@@ -155,6 +155,14 @@ export default function MainNavigator() {
         name="HelpCenter" 
         component={require('../screens/support/HelpCenterScreen').default}
       />
+      <Stack.Screen 
+        name="ContactSupport" 
+        component={require('../screens/support/ContactSupportScreen').default}
+      />
+      <Stack.Screen 
+        name="RateApp" 
+        component={require('../screens/support/RateAppScreen').default}
+      />
       
       {/* Profile */}
       <Stack.Screen 
@@ -168,6 +176,14 @@ export default function MainNavigator() {
       <Stack.Screen 
         name="ActiveBookings" 
         component={require('../screens/profile/ActiveBookingsScreen').default}
+      />
+      <Stack.Screen 
+        name="PastBookings" 
+        component={require('../screens/profile/PastBookingsScreen').default}
+      />
+      <Stack.Screen 
+        name="Favorites" 
+        component={require('../screens/profile/FavoritesScreen').default}
       />
     </Stack.Navigator>
   );
