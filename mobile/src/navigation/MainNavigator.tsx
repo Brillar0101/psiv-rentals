@@ -8,6 +8,11 @@ import { COLORS, SIZES } from '../constants/theme';
 
 // Import real screens
 import HomeScreen from '../screens/home/HomeScreen';
+import EquipmentDetailScreen from '../screens/equipment/EquipmentDetailScreen';
+import DateSelectionScreen from '../screens/booking/DateSelectionScreen';
+import ProfileScreen from '../screens/profile/ProfileScreen';
+import SearchScreen from '../screens/home/SearchScreen';
+import MyBookingsScreen from '../screens/profile/MyBookingsScreen';
 
 // Placeholder screens (will be created in next batches)
 import { View, Text, StyleSheet } from 'react-native';
@@ -18,10 +23,6 @@ const PlaceholderScreen = ({ name }: { name: string }) => (
     <Text style={styles.placeholderSubtext}>Coming in next batch! 🚀</Text>
   </View>
 );
-
-const SearchScreen = () => <PlaceholderScreen name="Search Screen" />;
-const BookingsScreen = () => <PlaceholderScreen name="My Bookings" />;
-const ProfileScreen = () => <PlaceholderScreen name="Profile Screen" />;
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -64,7 +65,7 @@ function HomeTabs() {
       />
       <Tab.Screen
         name="Bookings"
-        component={BookingsScreen}
+        component={MyBookingsScreen}
         options={{
           tabBarLabel: 'Bookings',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>📅</Text>,
@@ -92,11 +93,35 @@ export default function MainNavigator() {
       <Stack.Screen name="CategoryDetail" component={require('../screens/home/CategoryDetailScreen').default} />
       <Stack.Screen name="Search" component={require('../screens/home/SearchScreen').default} />
       
-      {/* Equipment screens (placeholders for now) */}
+      {/* Equipment screens */}
       <Stack.Screen 
         name="EquipmentDetail" 
-        component={PlaceholderScreen}
-        options={{ presentation: 'modal' }}
+        component={EquipmentDetailScreen}
+      />
+      <Stack.Screen 
+        name="EquipmentGallery" 
+        component={require('../screens/equipment/EquipmentGalleryScreen').default}
+        options={{ presentation: 'fullScreenModal' }}
+      />
+      
+      {/* Booking screens */}
+      <Stack.Screen 
+        name="DateSelection" 
+        component={DateSelectionScreen}
+      />
+      <Stack.Screen 
+        name="BookingSummary" 
+        component={require('../screens/booking/BookingSummaryScreen').default}
+      />
+      <Stack.Screen 
+        name="PaymentMethod" 
+        component={require('../screens/payment/PaymentMethodScreen').default}
+      />
+      
+      {/* Support screens */}
+      <Stack.Screen 
+        name="HelpCenter" 
+        component={require('../screens/support/HelpCenterScreen').default}
       />
     </Stack.Navigator>
   );
