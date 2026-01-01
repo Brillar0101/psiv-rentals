@@ -61,7 +61,7 @@ export default function CartScreen() {
           <Text style={styles.emptySubtitle}>Add equipment to get started</Text>
           <Button
             title="Browse Equipment"
-            onPress={() => navigation.navigate('Home' as never)}
+            onPress={() => navigation.navigate('MainTabs' as never, { screen: 'Home' } as never)}
             style={{ marginTop: SIZES.xl }}
           />
         </View>
@@ -78,7 +78,7 @@ export default function CartScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Cart</Text>
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>{cartItems.length}</Text>
+          <Text style={styles.badgeText}>{items.length}</Text>
         </View>
       </View>
 

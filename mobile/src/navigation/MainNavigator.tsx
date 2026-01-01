@@ -1,7 +1,6 @@
 // src/navigation/MainNavigator.tsx
 import React from 'react';
 import { View, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { COLORS, SIZES } from '../constants/theme';
@@ -116,40 +115,42 @@ function HomeTabs() {
 // Main Stack Navigator
 export default function MainNavigator() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="MainTabs" component={HomeTabs} />
-        
-        {/* Equipment & Booking Flow */}
-        <Stack.Screen 
-          name="EquipmentDetail" 
-          component={EquipmentDetailScreen}
-        />
-        <Stack.Screen 
-          name="DateSelection" 
-          component={DateSelectionScreen}
-        />
-        <Stack.Screen 
-          name="AddToCartConfirm" 
-          component={require('../screens/booking/AddToCartConfirmScreen').default}
-        />
-        
-        {/* Payment Flow */}
-        <Stack.Screen 
-          name="PaymentMethod" 
-          component={require('../screens/payment/PaymentMethodScreen').default}
-        />
-        <Stack.Screen 
-          name="StripePayment" 
-          component={require('../screens/payment/StripePaymentScreen').default}
-        />
-        
-        {/* Support */}
-        <Stack.Screen 
-          name="HelpCenter" 
-          component={require('../screens/support/HelpCenterScreen').default}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={HomeTabs} />
+      
+      {/* Equipment & Booking Flow */}
+      <Stack.Screen 
+        name="EquipmentDetail" 
+        component={EquipmentDetailScreen}
+      />
+      <Stack.Screen 
+        name="CategoryDetail" 
+        component={require('../screens/equipment/CategoryDetailScreen').default}
+      />
+      <Stack.Screen 
+        name="DateSelection" 
+        component={DateSelectionScreen}
+      />
+      <Stack.Screen 
+        name="AddToCartConfirm" 
+        component={require('../screens/booking/AddToCartConfirmScreen').default}
+      />
+      
+      {/* Payment Flow */}
+      <Stack.Screen 
+        name="PaymentMethod" 
+        component={require('../screens/payment/PaymentMethodScreen').default}
+      />
+      <Stack.Screen 
+        name="StripePayment" 
+        component={require('../screens/payment/StripePaymentScreen').default}
+      />
+      
+      {/* Support */}
+      <Stack.Screen 
+        name="HelpCenter" 
+        component={require('../screens/support/HelpCenterScreen').default}
+      />
+    </Stack.Navigator>
   );
 }

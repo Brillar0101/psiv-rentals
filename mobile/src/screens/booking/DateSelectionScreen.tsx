@@ -118,7 +118,7 @@ export default function DateSelectionScreen() {
 
         console.log('Extracted pricing:', pricing); // Debug log
 
-        navigation.navigate('BookingSummary' as never, {
+        navigation.navigate('AddToCartConfirm' as never, {
           equipmentId,
           startDate,
           endDate,
@@ -131,7 +131,7 @@ export default function DateSelectionScreen() {
         );
       } else {
         // If no clear response, proceed anyway (for development)
-        navigation.navigate('BookingSummary' as never, {
+        navigation.navigate('AddToCartConfirm' as never, {
           equipmentId,
           startDate,
           endDate,
@@ -157,7 +157,7 @@ export default function DateSelectionScreen() {
           {
             text: 'Continue',
             onPress: () => {
-              navigation.navigate('BookingSummary' as never, {
+              navigation.navigate('AddToCartConfirm' as never, {
                 equipmentId,
                 startDate,
                 endDate,

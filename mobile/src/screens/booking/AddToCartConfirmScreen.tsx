@@ -32,12 +32,29 @@ export default function AddToCartConfirmScreen() {
 
   const loadEquipment = async () => {
     try {
-      const response = await equipmentAPI.getEquipmentById(equipmentId);
+      const response = await equipmentAPI.getById(equipmentId);
       if (response.success) {
         setEquipment(response.data);
+      } else {
+        // Fallback: create minimal equipment object
+        setEquipment({
+          id: equipmentId,
+          name: 'Equipment',
+          daily_rate: pricing?.daily_rate || 0,
+          damage_deposit: pricing?.damage_deposit || 0,
+          images: [],
+        });
       }
     } catch (error) {
       console.error('Failed to load equipment:', error);
+      // Fallback: create minimal equipment object from pricing
+      setEquipment({
+        id: equipmentId,
+        name: 'Equipment',
+        daily_rate: pricing?.daily_rate || 0,
+        damage_deposit: pricing?.damage_deposit || 0,
+        images: [],
+      });
     } finally {
       setLoading(false);
     }
@@ -94,9 +111,9 @@ export default function AddToCartConfirmScreen() {
   }
 
   const totalDays = pricing?.total_days || 1;
-  const dailyRate = equipment.daily_rate || 0;
+  const dailyRate = equipment?.daily_rate || 0;
   const subtotal = dailyRate * totalDays;
-  const deposit = equipment.damage_deposit || 0;
+  const deposit = Number(equipment?.damage_deposit) || 0;
   const tax = subtotal * 0.08;
   const total = subtotal + deposit + tax;
 
