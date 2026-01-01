@@ -1,5 +1,5 @@
 // src/screens/home/HomeScreen.tsx
-// Clean Home Screen with API integration
+// Home Screen with FEATURED EQUIPMENT (Option 1)
 
 import React, { useState } from 'react';
 import {
@@ -21,7 +21,7 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const [userName, setUserName] = useState('User');
   const [categories, setCategories] = useState([]);
-  const [equipment, setEquipment] = useState([]);
+  const [featuredEquipment, setFeaturedEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -55,10 +55,10 @@ export default function HomeScreen() {
         setCategories(categoriesResponse.data.slice(0, 6));
       }
 
-      // Load equipment
-      const equipmentResponse = await equipmentAPI.getAll();
-      if (equipmentResponse.success) {
-        setEquipment(equipmentResponse.data.slice(0, 10));
+      // Load FEATURED equipment (top 6 rated)
+      const featuredResponse = await equipmentAPI.getFeatured(6);
+      if (featuredResponse.success) {
+        setFeaturedEquipment(featuredResponse.data);
       }
     } catch (error) {
       console.error('Load data error:', error);
@@ -88,6 +88,12 @@ export default function HomeScreen() {
         source={{ uri: item.images?.[0] || 'https://via.placeholder.com/400' }}
         style={styles.equipmentImage}
       />
+      
+      {/* Featured Badge */}
+      <View style={styles.featuredBadge}>
+        <Text style={styles.featuredBadgeText}>⭐ Featured</Text>
+      </View>
+
       <View style={styles.equipmentInfo}>
         <Text style={styles.equipmentBrand} numberOfLines={1}>{item.brand || 'Equipment'}</Text>
         <Text style={styles.equipmentName} numberOfLines={2}>{item.name}</Text>
@@ -157,17 +163,20 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* Equipment */}
-          {equipment.length > 0 && (
+          {/* Featured Equipment */}
+          {featuredEquipment.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Available Equipment</Text>
-                <TouchableOpacity onPress={() => (navigation as any).navigate('Equipment')}>
+                <View>
+                  <Text style={styles.sectionTitle}>⭐ Featured Equipment</Text>
+                  <Text style={styles.sectionSubtitle}>Top rated by our customers</Text>
+                </View>
+                <TouchableOpacity onPress={() => (navigation as any).navigate('Search')}>
                   <Text style={styles.seeAll}>See All →</Text>
                 </TouchableOpacity>
               </View>
               <FlatList
-                data={equipment}
+                data={featuredEquipment}
                 renderItem={renderEquipmentCard}
                 keyExtractor={(item: any) => item.id}
                 numColumns={2}
@@ -198,8 +207,9 @@ const styles = StyleSheet.create({
   searchPlaceholder: { fontSize: SIZES.body, color: COLORS.textLight },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   section: { marginBottom: SIZES.lg },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SIZES.paddingHorizontal, marginBottom: SIZES.md },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: SIZES.paddingHorizontal, marginBottom: SIZES.md },
   sectionTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  sectionSubtitle: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginTop: SIZES.xs },
   seeAll: { fontSize: SIZES.body, color: COLORS.primary, fontWeight: FONT_WEIGHTS.semiBold },
   categoryList: { paddingHorizontal: SIZES.paddingHorizontal },
   categoryCard: { width: 90, marginRight: SIZES.md, alignItems: 'center' },
@@ -208,8 +218,10 @@ const styles = StyleSheet.create({
   categoryName: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, textAlign: 'center' },
   equipmentGrid: { paddingHorizontal: SIZES.paddingHorizontal },
   equipmentRow: { justifyContent: 'space-between', marginBottom: SIZES.md },
-  equipmentCard: { width: '48%', backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, overflow: 'hidden', ...SHADOWS.card },
+  equipmentCard: { width: '48%', backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, overflow: 'hidden', ...SHADOWS.card, position: 'relative' },
   equipmentImage: { width: '100%', height: 140, backgroundColor: COLORS.background },
+  featuredBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(255, 193, 7, 0.95)', paddingHorizontal: SIZES.sm, paddingVertical: 4, borderRadius: SIZES.radiusPill },
+  featuredBadgeText: { fontSize: 10, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white },
   equipmentInfo: { padding: SIZES.md },
   equipmentBrand: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
   equipmentName: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm, minHeight: 40 },

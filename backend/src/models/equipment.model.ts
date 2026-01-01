@@ -360,4 +360,29 @@ export class EquipmentModel {
     const result = await pool.query(query, [categoryId, limit]);
     return result.rows;
   }
+
+  /**
+   * Get featured equipment (top rated, most popular)
+   * Returns equipment sorted by:
+   * 1. Highest average_rating
+   * 2. Most review_count
+   * 3. Most total_bookings
+   * 4. Newest created_at
+   */
+  static async getFeatured(limit: number = 6): Promise<Equipment[]> {
+    const query = `
+      SELECT e.*, c.name as category_name
+      FROM equipment e
+      LEFT JOIN equipment_categories c ON e.category_id = c.id
+      WHERE e.is_active = true AND e.quantity_available > 0
+      ORDER BY 
+        e.average_rating DESC NULLS LAST,
+        e.review_count DESC NULLS LAST,
+        e.total_bookings DESC NULLS LAST,
+        e.created_at DESC
+      LIMIT $1
+    `;
+    const result = await pool.query(query, [limit]);
+    return result.rows;
+  }
 }

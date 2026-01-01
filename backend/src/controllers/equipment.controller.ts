@@ -1,18 +1,10 @@
 // src/controllers/equipment.controller.ts
-// Equipment Controller - Handles equipment management operations
+// COMPLETE FILE with getFeatured method added
 
 import { Request, Response } from 'express';
 import { EquipmentModel } from '../models/equipment.model';
 
-/**
- * Equipment Controller Class
- * Handles all equipment-related operations
- */
 export class EquipmentController {
-  /**
-   * POST /api/equipment
-   * Create new equipment (Admin only)
-   */
   static async create(req: Request, res: Response): Promise<void> {
     try {
       const {
@@ -30,7 +22,6 @@ export class EquipmentController {
         images,
       } = req.body;
 
-      // Validation
       if (!name || !daily_rate || !replacement_value || !damage_deposit) {
         res.status(400).json({
           success: false,
@@ -76,14 +67,9 @@ export class EquipmentController {
     }
   }
 
-  /**
-   * GET /api/equipment/:id
-   * Get equipment by ID
-   */
   static async getById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-
       const equipment = await EquipmentModel.findById(id);
 
       if (!equipment) {
@@ -107,10 +93,6 @@ export class EquipmentController {
     }
   }
 
-  /**
-   * GET /api/equipment
-   * Get all equipment (with search/filter)
-   */
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
       const {
@@ -160,16 +142,11 @@ export class EquipmentController {
     }
   }
 
-  /**
-   * PUT /api/equipment/:id
-   * Update equipment (Admin only)
-   */
   static async update(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const updates = req.body;
 
-      // Remove fields that shouldn't be updated directly
       delete updates.id;
       delete updates.created_at;
       delete updates.updated_at;
@@ -202,10 +179,6 @@ export class EquipmentController {
     }
   }
 
-  /**
-   * PATCH /api/equipment/:id/availability
-   * Update equipment availability (Admin only)
-   */
   static async updateAvailability(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -248,10 +221,6 @@ export class EquipmentController {
     }
   }
 
-  /**
-   * DELETE /api/equipment/:id
-   * Delete equipment (Admin only) - Soft delete
-   */
   static async delete(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
@@ -260,10 +229,8 @@ export class EquipmentController {
       let success: boolean;
 
       if (hard_delete === 'true') {
-        // Permanent deletion
         success = await EquipmentModel.hardDelete(id);
       } else {
-        // Soft delete (set is_active = false)
         success = await EquipmentModel.delete(id);
       }
 
@@ -288,10 +255,6 @@ export class EquipmentController {
     }
   }
 
-  /**
-   * GET /api/equipment/category/:categoryId
-   * Get equipment by category
-   */
   static async getByCategory(req: Request, res: Response): Promise<void> {
     try {
       const { categoryId } = req.params;
@@ -311,6 +274,27 @@ export class EquipmentController {
       res.status(500).json({
         success: false,
         error: 'Failed to fetch equipment',
+      });
+    }
+  }
+
+  // NEW METHOD - Featured equipment
+  static async getFeatured(req: Request, res: Response): Promise<void> {
+    try {
+      const { limit } = req.query;
+      const limitNum = limit ? parseInt(limit as string) : 6;
+
+      const equipment = await EquipmentModel.getFeatured(limitNum);
+
+      res.json({
+        success: true,
+        data: equipment,
+      });
+    } catch (error) {
+      console.error('Get featured equipment error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch featured equipment',
       });
     }
   }

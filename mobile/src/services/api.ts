@@ -1,5 +1,5 @@
 // mobile/src/services/api.ts
-// Fixed version with categoryAPI.getById() added
+// COMPLETE FILE with getFeatured added
 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,19 +38,10 @@ api.interceptors.response.use(
     if (error.response) {
       console.error('Response:', error.response.data);
       
-      // Handle 401 - Unauthorized
       if (error.response.status === 401) {
         console.log('401 Error - Clearing auth and redirecting to login');
-        
-        // Clear auth data
         await AsyncStorage.multiRemove(['token', 'user']);
-        
-        // Show alert
-        Alert.alert(
-          'Session Expired',
-          'Please login again',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Session Expired', 'Please login again', [{ text: 'OK' }]);
       }
     }
     
@@ -69,6 +60,10 @@ export const equipmentAPI = {
   },
   getByCategory: async (categoryId: string) => {
     const response = await api.get(`/equipment/category/${categoryId}`);
+    return response.data;
+  },
+  getFeatured: async (limit: number = 6) => {
+    const response = await api.get(`/equipment/featured?limit=${limit}`);
     return response.data;
   },
   search: async (query: string) => {

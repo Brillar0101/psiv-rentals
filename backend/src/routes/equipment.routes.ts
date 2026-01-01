@@ -1,11 +1,25 @@
 // src/routes/equipment.routes.ts
-// Equipment Routes - Define API endpoints for equipment
+// Equipment Routes - WITH FEATURED ENDPOINT
 
 import { Router } from 'express';
 import { EquipmentController } from '../controllers/equipment.controller';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
+
+/**
+ * @route   GET /api/equipment/featured
+ * @desc    Get featured equipment (top rated)
+ * @access  Public
+ */
+router.get('/featured', EquipmentController.getFeatured);
+
+/**
+ * @route   GET /api/equipment/category/:categoryId
+ * @desc    Get equipment by category
+ * @access  Public
+ */
+router.get('/category/:categoryId', EquipmentController.getByCategory);
 
 /**
  * @route   GET /api/equipment
@@ -20,13 +34,6 @@ router.get('/', EquipmentController.getAll);
  * @access  Public
  */
 router.get('/:id', EquipmentController.getById);
-
-/**
- * @route   GET /api/equipment/category/:categoryId
- * @desc    Get equipment by category
- * @access  Public
- */
-router.get('/category/:categoryId', EquipmentController.getByCategory);
 
 /**
  * @route   POST /api/equipment
