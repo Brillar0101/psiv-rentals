@@ -40,13 +40,13 @@ export default function ProfileScreen() {
       section: 'Account',
       items: [
         { icon: '👤', title: 'Edit Profile', screen: 'EditProfile', available: true },
-        { icon: '🔒', title: 'Change Password', screen: 'ChangePassword', available: false },
+        { icon: '🔒', title: 'Change Password', screen: 'ChangePassword', available: true },
       ],
     },
     {
       section: 'Bookings',
       items: [
-        { icon: '📅', title: 'Active Bookings', screen: 'MyBookingsActive', available: false },
+        { icon: '📅', title: 'Active Bookings', screen: 'ActiveBookings', available: true },
         { icon: '📋', title: 'Past Bookings', screen: 'MyBookingsPast', available: false },
         { icon: '❤️', title: 'Favorites', screen: 'Favorites', available: false },
       ],

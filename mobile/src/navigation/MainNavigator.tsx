@@ -161,6 +161,14 @@ export default function MainNavigator() {
         name="EditProfile" 
         component={require('../screens/profile/EditProfileScreen').default}
       />
+      <Stack.Screen 
+        name="ChangePassword" 
+        component={require('../screens/profile/ChangePasswordScreen').default}
+      />
+      <Stack.Screen 
+        name="ActiveBookings" 
+        component={require('../screens/profile/ActiveBookingsScreen').default}
+      />
     </Stack.Navigator>
   );
 }
