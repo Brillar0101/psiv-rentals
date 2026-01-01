@@ -117,6 +117,10 @@ export default function MainNavigator() {
         name="PaymentMethod" 
         component={require('../screens/payment/PaymentMethodScreen').default}
       />
+      <Stack.Screen 
+        name="StripePayment" 
+        component={require('../screens/payment/StripePaymentScreen').default}
+      />
       
       {/* Support screens */}
       <Stack.Screen 

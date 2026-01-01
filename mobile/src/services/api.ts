@@ -5,8 +5,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL = __DEV__ 
-  ? 'http://172.20.4.208:5000/api' 
-  : 'https://api.psivrentals.com/api';
+  ? 'http://172.20.4.208:5000/api'  // Development (WiFi IP for physical device)
+  : 'https://api.psivrentals.com/api'; // Production
 
 // Create axios instance
 const api = axios.create({
@@ -157,18 +157,18 @@ export const bookingAPI = {
 
 // Payment API
 export const paymentAPI = {
-  createPaymentIntent: async (bookingId: string) => {
-    const response = await api.post('/payments/create-intent', { booking_id: bookingId });
+  createPaymentIntent: async (data: { amount: number; currency?: string; bookingId?: string; equipmentId?: string }) => {
+    const response = await apiClient.post('/payment/create-payment-intent', data);
     return response.data;
   },
 
-  confirmPayment: async (paymentIntentId: string) => {
-    const response = await api.post('/payments/confirm', { payment_intent_id: paymentIntentId });
+  confirmPayment: async (data: { paymentIntentId: string; bookingId: string }) => {
+    const response = await apiClient.post('/payment/confirm-payment', data);
     return response.data;
   },
 
-  getPaymentStatus: async (bookingId: string) => {
-    const response = await api.get(`/payments/booking/${bookingId}`);
+  getPaymentStatus: async (paymentIntentId: string) => {
+    const response = await apiClient.get(`/payment/status/${paymentIntentId}`);
     return response.data;
   },
 };

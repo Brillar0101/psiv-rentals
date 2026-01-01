@@ -17,9 +17,16 @@ export default function PaymentMethodScreen() {
   ];
 
   const handlePayment = () => {
-    Alert.alert('Success!', 'Booking confirmed! (Stripe integration ready)', [
-      { text: 'OK', onPress: () => navigation.navigate('MainTabs' as never) },
-    ]);
+    if (selectedMethod === 'card') {
+      // Navigate to real Stripe payment screen
+      navigation.navigate('StripePayment' as never, { 
+        bookingData: route.params 
+      } as never);
+    } else if (selectedMethod === 'apple_pay') {
+      Alert.alert('Coming Soon', 'Apple Pay integration coming soon!');
+    } else {
+      Alert.alert('Coming Soon', 'This payment method will be available soon!');
+    }
   };
 
   return (
