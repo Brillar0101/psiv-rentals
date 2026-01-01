@@ -158,17 +158,17 @@ export const bookingAPI = {
 // Payment API
 export const paymentAPI = {
   createPaymentIntent: async (data: { amount: number; currency?: string; bookingId?: string; equipmentId?: string }) => {
-    const response = await apiClient.post('/payment/create-payment-intent', data);
+    const response = await api.post('/payment/create-payment-intent', data);
     return response.data;
   },
 
   confirmPayment: async (data: { paymentIntentId: string; bookingId: string }) => {
-    const response = await apiClient.post('/payment/confirm-payment', data);
+    const response = await api.post('/payment/confirm-payment', data);
     return response.data;
   },
 
   getPaymentStatus: async (paymentIntentId: string) => {
-    const response = await apiClient.get(`/payment/status/${paymentIntentId}`);
+    const response = await api.get(`/payment/status/${paymentIntentId}`);
     return response.data;
   },
 };

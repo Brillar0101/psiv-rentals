@@ -8,9 +8,33 @@ import { Button } from '../../components/ui/Button';
 export default function BookingSummaryScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { equipmentId, startDate, endDate, pricing } = route.params as any;
+  const params = route.params as any;
+  
+  console.log('BookingSummary - route.params:', route.params);
+  console.log('BookingSummary - params:', params);
+  
+  // Safely extract all values with multiple fallback levels
+  const pricing = params?.pricing || params?.bookingData?.pricing || {};
+  const equipmentId = params?.equipmentId || params?.bookingData?.equipmentId || '';
+  const startDate = params?.startDate || params?.bookingData?.startDate || '';
+  const endDate = params?.endDate || params?.bookingData?.endDate || '';
 
-  console.log('Booking Summary - Pricing:', pricing); // Debug log
+  console.log('BookingSummary - Extracted pricing:', pricing);
+
+  // Extract individual values with explicit fallbacks
+  const totalDays = Number(pricing?.total_days) || 0;
+  const subtotal = Number(pricing?.subtotal) || 0;
+  const damageDeposit = Number(pricing?.damage_deposit) || 0;
+  const tax = Number(pricing?.tax) || 0;
+  const totalAmount = Number(pricing?.total_amount) || 0;
+
+  console.log('BookingSummary - Display values:', {
+    totalDays,
+    subtotal,
+    damageDeposit,
+    tax,
+    totalAmount
+  });
 
   return (
     <View style={styles.container}>
@@ -26,26 +50,26 @@ export default function BookingSummaryScreen() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Rental Period</Text>
           <Text style={styles.dateText}>{startDate} → {endDate}</Text>
-          <Text style={styles.daysText}>{pricing?.total_days || 0} days</Text>
+          <Text style={styles.daysText}>{totalDays} days</Text>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Price Breakdown</Text>
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Daily Rate × {pricing?.total_days || 0}</Text>
-            <Text style={styles.priceValue}>${pricing?.subtotal || 0}</Text>
+            <Text style={styles.priceLabel}>Daily Rate × {totalDays}</Text>
+            <Text style={styles.priceValue}>${subtotal}</Text>
           </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Damage Deposit</Text>
-            <Text style={styles.priceValue}>${pricing?.damage_deposit || 0}</Text>
+            <Text style={styles.priceValue}>${damageDeposit}</Text>
           </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tax</Text>
-            <Text style={styles.priceValue}>${pricing?.tax || 0}</Text>
+            <Text style={styles.priceValue}>${tax}</Text>
           </View>
           <View style={[styles.priceRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>${pricing?.total_amount || 0}</Text>
+            <Text style={styles.totalValue}>${totalAmount}</Text>
           </View>
         </View>
       </ScrollView>
