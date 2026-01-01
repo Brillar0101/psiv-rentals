@@ -1,6 +1,5 @@
 // src/screens/equipment/EquipmentDetailScreen.tsx
-// Equipment Detail Screen - Full product page with booking + REVIEWS
-// FIXED: TypeScript navigation errors
+// Equipment Detail Screen - WITH WORKING FAVORITES
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -12,8 +11,10 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
 import { equipmentAPI } from '../../services/api';
@@ -22,6 +23,7 @@ import EquipmentReviews from '../../components/EquipmentReviews';
 import api from '../../services/api';
 
 const { width } = Dimensions.get('window');
+const FAVORITES_KEY = '@favorites';
 
 export default function EquipmentDetailScreen() {
   const navigation = useNavigation();
@@ -33,10 +35,12 @@ export default function EquipmentDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     loadEquipment();
     loadReviews();
+    checkFavorite();
   }, [id]);
 
   const loadEquipment = async () => {
@@ -63,8 +67,54 @@ export default function EquipmentDetailScreen() {
     }
   };
 
+  const checkFavorite = async () => {
+    try {
+      const favoritesJson = await AsyncStorage.getItem(FAVORITES_KEY);
+      if (favoritesJson) {
+        const favorites = JSON.parse(favoritesJson);
+        const isInFavorites = favorites.some((fav: any) => fav.id === id);
+        setIsFavorite(isInFavorites);
+      }
+    } catch (error) {
+      console.error('Check favorite error:', error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    try {
+      const favoritesJson = await AsyncStorage.getItem(FAVORITES_KEY);
+      let favorites = favoritesJson ? JSON.parse(favoritesJson) : [];
+
+      if (isFavorite) {
+        // Remove from favorites
+        favorites = favorites.filter((fav: any) => fav.id !== id);
+        setIsFavorite(false);
+        Alert.alert('Removed', 'Removed from favorites');
+      } else {
+        // Add to favorites
+        const favoriteItem = {
+          id: equipment.id,
+          name: equipment.name,
+          brand: equipment.brand,
+          daily_rate: equipment.daily_rate,
+          weekly_rate: equipment.weekly_rate,
+          images: equipment.images,
+          average_rating: equipment.average_rating,
+          review_count: equipment.review_count,
+        };
+        favorites.push(favoriteItem);
+        setIsFavorite(true);
+        Alert.alert('Added! ❤️', 'Added to favorites');
+      }
+
+      await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    } catch (error) {
+      console.error('Toggle favorite error:', error);
+      Alert.alert('Error', 'Failed to update favorites');
+    }
+  };
+
   const handleImagePress = (index: number) => {
-    // Navigate to gallery if screen exists, otherwise just show image
     if (images.length > 1) {
       try {
         (navigation as any).navigate('EquipmentGallery', { 
@@ -122,8 +172,13 @@ export default function EquipmentDetailScreen() {
         >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.favoriteButton}>
-          <Text style={styles.favoriteIcon}>♡</Text>
+        <TouchableOpacity 
+          style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
+          onPress={toggleFavorite}
+        >
+          <Text style={styles.favoriteIcon}>
+            {isFavorite ? '❤️' : '♡'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -326,8 +381,8 @@ export default function EquipmentDetailScreen() {
         equipmentId={id}
         equipmentName={equipment.name}
         onSubmitSuccess={() => {
-          loadEquipment(); // Reload to update average rating
-          loadReviews();   // Reload to show new review
+          loadEquipment();
+          loadReviews();
         }}
       />
     </View>
@@ -342,7 +397,8 @@ const styles = StyleSheet.create({
   backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
   backIcon: { fontSize: 24, color: COLORS.text },
   favoriteButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
-  favoriteIcon: { fontSize: 24, color: COLORS.primary },
+  favoriteButtonActive: { backgroundColor: COLORS.errorLight },
+  favoriteIcon: { fontSize: 24 },
   imageContainer: { position: 'relative', height: 400 },
   mainImage: { width, height: 400 },
   pagination: { position: 'absolute', bottom: 20, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: SIZES.xs },

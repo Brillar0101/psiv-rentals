@@ -1,82 +1,106 @@
 // src/screens/home/HomeScreen.tsx
-// Home Screen - Main landing page with equipment browsing
+// Clean Home Screen with API integration
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
   FlatList,
-  RefreshControl,
-  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
-import { EquipmentCard } from '../../components/cards/EquipmentCard';
 import { equipmentAPI, categoryAPI } from '../../services/api';
-import { useAuthStore } from '../../store/authStore';
-
-const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  const { user } = useAuthStore();
-  
+  const [userName, setUserName] = useState('User');
   const [categories, setCategories] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+      loadData();
+    }, [])
+  );
 
-  const loadData = async () => {
+  const loadUserData = async () => {
     try {
-      const [categoriesRes, equipmentRes] = await Promise.all([
-        categoryAPI.getAll(),
-        equipmentAPI.getAll({ limit: 10, available_only: true }),
-      ]);
-
-      if (categoriesRes.success) {
-        setCategories(categoriesRes.data);
-      }
-
-      if (equipmentRes.success) {
-        setEquipment(equipmentRes.data);
+      const userJson = await AsyncStorage.getItem('user');
+      if (userJson) {
+        const user = JSON.parse(userJson);
+        const fullName = user.full_name || user.name || 'User';
+        const firstName = fullName.split(' ')[0];
+        setUserName(firstName);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      console.error('Load user error:', error);
     }
   };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData();
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load categories
+      const categoriesResponse = await categoryAPI.getAll();
+      if (categoriesResponse.success) {
+        setCategories(categoriesResponse.data.slice(0, 6));
+      }
+
+      // Load equipment
+      const equipmentResponse = await equipmentAPI.getAll();
+      if (equipmentResponse.success) {
+        setEquipment(equipmentResponse.data.slice(0, 10));
+      }
+    } catch (error) {
+      console.error('Load data error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderCategory = ({ item }: any) => (
+  const renderCategoryCard = ({ item }: any) => (
     <TouchableOpacity
       style={styles.categoryCard}
-      onPress={() => navigation.navigate('CategoryDetail' as never, { category: item } as never)}
+      onPress={() => (navigation as any).navigate('CategoryDetail', { categoryId: item.id })}
     >
       <View style={styles.categoryIcon}>
-        <Text style={styles.categoryEmoji}>
-          {item.name === 'Cameras' ? '📷' :
-           item.name === 'Lenses' ? '🔍' :
-           item.name === 'Audio' ? '🎤' :
-           item.name === 'Lighting' ? '💡' :
-           item.name === 'Stabilization' ? '🎥' :
-           item.name === 'Accessories' ? '🎒' :
-           item.name === 'Drones' ? '🚁' : '📦'}
-        </Text>
+        <Text style={styles.categoryIconText}>{item.icon || '📦'}</Text>
       </View>
       <Text style={styles.categoryName} numberOfLines={1}>{item.name}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderEquipmentCard = ({ item }: any) => (
+    <TouchableOpacity
+      style={styles.equipmentCard}
+      onPress={() => (navigation as any).navigate('EquipmentDetail', { id: item.id })}
+    >
+      <Image
+        source={{ uri: item.images?.[0] || 'https://via.placeholder.com/400' }}
+        style={styles.equipmentImage}
+      />
+      <View style={styles.equipmentInfo}>
+        <Text style={styles.equipmentBrand} numberOfLines={1}>{item.brand || 'Equipment'}</Text>
+        <Text style={styles.equipmentName} numberOfLines={2}>{item.name}</Text>
+        <View style={styles.equipmentFooter}>
+          <Text style={styles.equipmentPrice}>${item.daily_rate}/day</Text>
+          {item.average_rating > 0 && (
+            <View style={styles.equipmentRating}>
+              <Text style={styles.ratingIcon}>⭐</Text>
+              <Text style={styles.ratingText}>{item.average_rating.toFixed(1)}</Text>
+            </View>
+          )}
+        </View>
+      </View>
     </TouchableOpacity>
   );
 
@@ -85,212 +109,113 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Hello, {user?.first_name || 'User'} 👋</Text>
-          <Text style={styles.headerSubtitle}>Find your perfect equipment</Text>
+          <Text style={styles.greeting}>Hello,</Text>
+          <Text style={styles.userName}>{userName}! 👋</Text>
         </View>
-        
-        {/* Notification icon */}
-        <TouchableOpacity style={styles.notificationButton}>
-          <Text style={styles.notificationIcon}>🔔</Text>
-          <View style={styles.badge} />
+        <TouchableOpacity 
+          style={styles.profileBtn}
+          onPress={() => (navigation as any).navigate('Profile')}
+        >
+          <View style={styles.profileAvatar}>
+            <Text style={styles.profileAvatarText}>{userName.charAt(0).toUpperCase()}</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
-        }
+      {/* Search Bar */}
+      <TouchableOpacity
+        style={styles.searchBar}
+        onPress={() => (navigation as any).navigate('Search')}
       >
-        {/* Search Bar */}
-        <TouchableOpacity
-          style={styles.searchBar}
-          onPress={() => navigation.navigate('Search' as never)}
-        >
-          <Text style={styles.searchIcon}>🔍</Text>
-          <Text style={styles.searchPlaceholder}>Search equipment...</Text>
-        </TouchableOpacity>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <Text style={styles.searchPlaceholder}>Search equipment...</Text>
+      </TouchableOpacity>
 
-        {/* Categories */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Categories</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('CategoryGrid' as never)}>
-              <Text style={styles.seeAll}>See All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={categories}
-            renderItem={renderCategory}
-            keyExtractor={(item: any) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesList}
-          />
+      {loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
-
-        {/* Featured Equipment */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Equipment</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.equipmentGrid}>
-            {equipment.map((item: any) => (
-              <EquipmentCard
-                key={item.id}
-                id={item.id}
-                name={item.name}
-                brand={item.brand}
-                dailyRate={item.daily_rate}
-                image={item.images?.[0]}
-                available={item.quantity_available > 0}
-                rating={item.average_rating}
-                onPress={() => navigation.navigate('EquipmentDetail' as never, { id: item.id } as never)}
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Categories */}
+          {categories.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Categories</Text>
+                <TouchableOpacity onPress={() => (navigation as any).navigate('Categories')}>
+                  <Text style={styles.seeAll}>See All →</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={categories}
+                renderItem={renderCategoryCard}
+                keyExtractor={(item: any) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryList}
               />
-            ))}
-          </View>
-        </View>
+            </View>
+          )}
 
-        {/* Popular This Week */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Popular This Week</Text>
-          <View style={styles.equipmentGrid}>
-            {equipment.slice(0, 4).map((item: any) => (
-              <EquipmentCard
-                key={`popular-${item.id}`}
-                id={item.id}
-                name={item.name}
-                brand={item.brand}
-                dailyRate={item.daily_rate}
-                image={item.images?.[0]}
-                available={item.quantity_available > 0}
-                rating={item.average_rating}
-                onPress={() => navigation.navigate('EquipmentDetail' as never, { id: item.id } as never)}
+          {/* Equipment */}
+          {equipment.length > 0 && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Available Equipment</Text>
+                <TouchableOpacity onPress={() => (navigation as any).navigate('Equipment')}>
+                  <Text style={styles.seeAll}>See All →</Text>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={equipment}
+                renderItem={renderEquipmentCard}
+                keyExtractor={(item: any) => item.id}
+                numColumns={2}
+                scrollEnabled={false}
+                contentContainerStyle={styles.equipmentGrid}
+                columnWrapperStyle={styles.equipmentRow}
               />
-            ))}
-          </View>
-        </View>
+            </View>
+          )}
 
-        {/* Spacing for bottom tab */}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SIZES.paddingHorizontal,
-    paddingTop: SIZES.xl + 20,
-    paddingBottom: SIZES.md,
-    backgroundColor: COLORS.white,
-  },
-  greeting: {
-    fontSize: SIZES.h3,
-    fontWeight: FONT_WEIGHTS.bold,
-    color: COLORS.text,
-  },
-  headerSubtitle: {
-    fontSize: SIZES.bodySmall,
-    color: COLORS.textSecondary,
-    marginTop: SIZES.xs,
-  },
-  notificationButton: {
-    position: 'relative',
-    padding: SIZES.sm,
-  },
-  notificationIcon: {
-    fontSize: 24,
-  },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.error,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    marginHorizontal: SIZES.paddingHorizontal,
-    marginVertical: SIZES.md,
-    padding: SIZES.md,
-    borderRadius: SIZES.radius,
-    ...SHADOWS.small,
-  },
-  searchIcon: {
-    fontSize: 20,
-    marginRight: SIZES.sm,
-  },
-  searchPlaceholder: {
-    fontSize: SIZES.body,
-    color: COLORS.textLight,
-  },
-  section: {
-    marginBottom: SIZES.lg,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SIZES.paddingHorizontal,
-    marginBottom: SIZES.md,
-  },
-  sectionTitle: {
-    fontSize: SIZES.h4,
-    fontWeight: FONT_WEIGHTS.bold,
-    color: COLORS.text,
-  },
-  seeAll: {
-    fontSize: SIZES.bodySmall,
-    color: COLORS.primary,
-    fontWeight: FONT_WEIGHTS.semiBold,
-  },
-  categoriesList: {
-    paddingHorizontal: SIZES.paddingHorizontal,
-  },
-  categoryCard: {
-    alignItems: 'center',
-    marginRight: SIZES.md,
-    width: 80,
-  },
-  categoryIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.primaryAlpha,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: SIZES.sm,
-  },
-  categoryEmoji: {
-    fontSize: 32,
-  },
-  categoryName: {
-    fontSize: SIZES.caption,
-    color: COLORS.text,
-    fontWeight: FONT_WEIGHTS.medium,
-    textAlign: 'center',
-  },
-  equipmentGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: SIZES.paddingHorizontal,
-    gap: SIZES.md,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md },
+  greeting: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.xs },
+  userName: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  profileBtn: { width: 48, height: 48 },
+  profileAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
+  profileAvatarText: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, marginHorizontal: SIZES.paddingHorizontal, paddingHorizontal: SIZES.md, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill, marginBottom: SIZES.lg, ...SHADOWS.small },
+  searchIcon: { fontSize: 20, marginRight: SIZES.sm },
+  searchPlaceholder: { fontSize: SIZES.body, color: COLORS.textLight },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  section: { marginBottom: SIZES.lg },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SIZES.paddingHorizontal, marginBottom: SIZES.md },
+  sectionTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  seeAll: { fontSize: SIZES.body, color: COLORS.primary, fontWeight: FONT_WEIGHTS.semiBold },
+  categoryList: { paddingHorizontal: SIZES.paddingHorizontal },
+  categoryCard: { width: 90, marginRight: SIZES.md, alignItems: 'center' },
+  categoryIcon: { width: 70, height: 70, borderRadius: 35, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.sm, ...SHADOWS.card },
+  categoryIconText: { fontSize: 32 },
+  categoryName: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, textAlign: 'center' },
+  equipmentGrid: { paddingHorizontal: SIZES.paddingHorizontal },
+  equipmentRow: { justifyContent: 'space-between', marginBottom: SIZES.md },
+  equipmentCard: { width: '48%', backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, overflow: 'hidden', ...SHADOWS.card },
+  equipmentImage: { width: '100%', height: 140, backgroundColor: COLORS.background },
+  equipmentInfo: { padding: SIZES.md },
+  equipmentBrand: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
+  equipmentName: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm, minHeight: 40 },
+  equipmentFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  equipmentPrice: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  equipmentRating: { flexDirection: 'row', alignItems: 'center' },
+  ratingIcon: { fontSize: 14, marginRight: 2 },
+  ratingText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
 });

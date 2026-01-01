@@ -1,5 +1,5 @@
 // src/screens/equipment/CategoryDetailScreen.tsx
-// Category Detail Screen - Shows all equipment in a category
+// Category Detail Screen - Shows all equipment in a category - FIXED
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -13,28 +13,38 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
-import { equipmentAPI } from '../../services/api';
+import { equipmentAPI, categoryAPI } from '../../services/api';
 
 export default function CategoryDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { category } = route.params as any;
+  const { categoryId } = route.params as any;
 
+  const [category, setCategory] = useState<any>(null);
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadEquipment();
-  }, []);
+    loadCategoryAndEquipment();
+  }, [categoryId]);
 
-  const loadEquipment = async () => {
+  const loadCategoryAndEquipment = async () => {
     try {
-      const response = await equipmentAPI.getByCategory(category.id);
-      if (response.success) {
-        setEquipment(response.data);
+      setLoading(true);
+      
+      // Load category details
+      const categoryResponse = await categoryAPI.getById(categoryId);
+      if (categoryResponse.success) {
+        setCategory(categoryResponse.data);
+      }
+
+      // Load equipment in this category
+      const equipmentResponse = await equipmentAPI.getByCategory(categoryId);
+      if (equipmentResponse.success) {
+        setEquipment(equipmentResponse.data);
       }
     } catch (error) {
-      console.error('Failed to load equipment:', error);
+      console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
@@ -43,20 +53,22 @@ export default function CategoryDetailScreen() {
   const renderEquipmentCard = ({ item }: any) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('EquipmentDetail' as never, { equipmentId: item.id } as never)}
+      onPress={() => (navigation as any).navigate('EquipmentDetail', { id: item.id })}
     >
       <Image
         source={{ uri: item.images?.[0] || 'https://via.placeholder.com/400' }}
         style={styles.image}
       />
       <View style={styles.cardContent}>
-        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
         <Text style={styles.brand}>{item.brand}</Text>
         <View style={styles.priceRow}>
           <Text style={styles.price}>${item.daily_rate}/day</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Available</Text>
-          </View>
+          {item.quantity_available > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>Available</Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -69,7 +81,9 @@ export default function CategoryDetailScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{category.name}</Text>
+        <Text style={styles.headerTitle}>
+          {category?.name || 'Category'}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -88,7 +102,11 @@ export default function CategoryDetailScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>No equipment in this category</Text>
+              <Text style={styles.emptyIcon}>📦</Text>
+              <Text style={styles.emptyTitle}>No Equipment</Text>
+              <Text style={styles.emptyText}>
+                No equipment available in this category
+              </Text>
             </View>
           }
         />
@@ -99,7 +117,7 @@ export default function CategoryDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
   backIcon: { fontSize: 28, color: COLORS.text },
   headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -114,6 +132,8 @@ const styles = StyleSheet.create({
   price: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
   badge: { backgroundColor: COLORS.successLight, paddingHorizontal: SIZES.sm, paddingVertical: 4, borderRadius: SIZES.radiusPill },
   badgeText: { fontSize: SIZES.caption, color: COLORS.success, fontWeight: FONT_WEIGHTS.semiBold },
-  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.xxl },
-  emptyText: { fontSize: SIZES.body, color: COLORS.textSecondary },
+  empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.xxl * 2 },
+  emptyIcon: { fontSize: 80, marginBottom: SIZES.lg },
+  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  emptyText: { fontSize: SIZES.body, color: COLORS.textSecondary, textAlign: 'center' },
 });

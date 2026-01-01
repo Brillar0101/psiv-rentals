@@ -60,7 +60,7 @@ export default function FavoritesScreen() {
   };
 
   const renderFavoriteCard = ({ item }: any) => (
-    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('EquipmentDetail' as never, { equipmentId: item.id } as never)}>
+    <TouchableOpacity style={styles.card} onPress={() => (navigation as any).navigate('EquipmentDetail', { id: item.id })}>
       <Image source={{ uri: item.images?.[0] || 'https://via.placeholder.com/400' }} style={styles.image} />
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
@@ -77,7 +77,7 @@ export default function FavoritesScreen() {
             <Text style={styles.price}>${item.daily_rate}/day</Text>
             {item.weekly_rate && <Text style={styles.weeklyPrice}>${item.weekly_rate}/week</Text>}
           </View>
-          <TouchableOpacity style={styles.bookBtn} onPress={() => navigation.navigate('EquipmentDetail' as never, { equipmentId: item.id } as never)}>
+          <TouchableOpacity style={styles.bookBtn} onPress={() => (navigation as any).navigate('EquipmentDetail', { id: item.id })}>
             <Text style={styles.bookBtnText}>Book Now</Text>
           </TouchableOpacity>
         </View>

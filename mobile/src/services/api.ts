@@ -1,11 +1,11 @@
 // mobile/src/services/api.ts
-// Fixed version with better auth handling
+// Fixed version with categoryAPI.getById() added
 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 
-const API_URL = 'http://172.20.4.208:5000/api';  // ← YOUR IP HERE
+const API_URL = 'http://172.20.4.208:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -51,9 +51,6 @@ api.interceptors.response.use(
           'Please login again',
           [{ text: 'OK' }]
         );
-        
-        // Note: Navigation to login will happen automatically
-        // because auth state will update
       }
     }
     
@@ -87,7 +84,6 @@ export const bookingAPI = {
       return response.data;
     } catch (error: any) {
       console.error('Get user bookings error:', error);
-      // Return empty data instead of throwing
       if (error.response?.status === 401) {
         return { success: false, data: [], requiresAuth: true };
       }
@@ -119,6 +115,10 @@ export const bookingAPI = {
 export const categoryAPI = {
   getAll: async () => {
     const response = await api.get('/categories');
+    return response.data;
+  },
+  getById: async (id: string) => {
+    const response = await api.get(`/categories/${id}`);
     return response.data;
   },
 };

@@ -124,6 +124,10 @@ export default function MainNavigator() {
         component={EquipmentDetailScreen}
       />
       <Stack.Screen 
+        name="Categories" 
+        component={require('../screens/equipment/CategoriesScreen').default}
+      />
+      <Stack.Screen 
         name="CategoryDetail" 
         component={require('../screens/equipment/CategoryDetailScreen').default}
       />
