@@ -142,8 +142,16 @@ export default function MainNavigator() {
         component={require('../screens/payment/PaymentMethodScreen').default}
       />
       <Stack.Screen 
+        name="CardDetails" 
+        component={require('../screens/payment/CardDetailsScreen').default}
+      />
+      <Stack.Screen 
         name="StripePayment" 
         component={require('../screens/payment/StripePaymentScreen').default}
+      />
+      <Stack.Screen 
+        name="PaymentSuccess" 
+        component={require('../screens/payment/PaymentSuccessScreen').default}
       />
       
       {/* Support */}
