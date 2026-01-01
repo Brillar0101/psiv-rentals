@@ -1,6 +1,4 @@
 // src/screens/payment/StripePaymentScreen.tsx
-// Real Stripe Payment Screen with Card Input
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -19,32 +17,58 @@ import { paymentAPI } from '../../services/api';
 export default function StripePaymentScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { bookingData } = route.params as any;
+  const params = route.params as any;
   const { confirmPayment } = useStripe();
 
   const [loading, setLoading] = useState(false);
   const [cardComplete, setCardComplete] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
 
+  // Safely extract booking data - handle double nesting!
+  const bookingData = params?.bookingData?.bookingData || params?.bookingData || {};
+  const pricing = bookingData?.pricing || {};
+  
+  // Extract values with fallbacks
+  const totalDays = pricing?.total_days || pricing?.totalDays || 0;
+  const subtotal = pricing?.subtotal || 0;
+  const damageDeposit = pricing?.damage_deposit || pricing?.damageDeposit || 0;
+  const tax = pricing?.tax || 0;
+  const totalAmount = pricing?.total_amount || pricing?.totalAmount || 0;
+
+  console.log('StripePayment - Full params:', params);
+  console.log('StripePayment - bookingData:', bookingData);
+  console.log('StripePayment - pricing:', pricing);
+  console.log('StripePayment - totalAmount:', totalAmount);
+
   useEffect(() => {
-    createPaymentIntent();
+    if (totalAmount > 0) {
+      createPaymentIntent();
+    } else {
+      Alert.alert('Error', 'Invalid payment amount. Please try again.');
+      navigation.goBack();
+    }
   }, []);
 
   const createPaymentIntent = async () => {
     try {
       setLoading(true);
       const response = await paymentAPI.createPaymentIntent({
-        amount: bookingData.pricing.total_amount,
-        bookingId: 'temp-booking-id', // You'll get this from booking creation
-        equipmentId: bookingData.equipmentId,
+        amount: totalAmount,
+        bookingId: 'temp-booking-id',
+        equipmentId: bookingData.equipmentId || '',
       });
+
+      console.log('Payment intent response:', response);
 
       if (response.success) {
         setClientSecret(response.data.clientSecret);
+      } else {
+        Alert.alert('Error', 'Failed to initialize payment');
+        navigation.goBack();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create payment intent:', error);
-      Alert.alert('Error', 'Failed to initialize payment. Please try again.');
+      Alert.alert('Error', error.message || 'Failed to initialize payment. Please try again.');
       navigation.goBack();
     } finally {
       setLoading(false);
@@ -74,13 +98,12 @@ export default function StripePaymentScreen() {
       } else if (paymentIntent) {
         // Payment succeeded!
         Alert.alert(
-          'Payment Successful!',
+          'Payment Successful! 🎉',
           'Your booking is confirmed.',
           [
             {
-              text: 'View Booking',
+              text: 'View Bookings',
               onPress: () => {
-                // Navigate to bookings
                 navigation.navigate('MainTabs' as never, { screen: 'Bookings' } as never);
               },
             },
@@ -108,37 +131,27 @@ export default function StripePaymentScreen() {
           
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Rental Period</Text>
-            <Text style={styles.summaryValue}>
-              {bookingData.pricing.total_days} days
-            </Text>
+            <Text style={styles.summaryValue}>{totalDays} days</Text>
           </View>
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Rental Amount</Text>
-            <Text style={styles.summaryValue}>
-              ${bookingData.pricing.subtotal}
-            </Text>
+            <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
           </View>
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Damage Deposit</Text>
-            <Text style={styles.summaryValue}>
-              ${bookingData.pricing.damage_deposit}
-            </Text>
+            <Text style={styles.summaryValue}>${damageDeposit.toFixed(2)}</Text>
           </View>
 
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Tax</Text>
-            <Text style={styles.summaryValue}>
-              ${bookingData.pricing.tax}
-            </Text>
+            <Text style={styles.summaryValue}>${tax.toFixed(2)}</Text>
           </View>
 
           <View style={[styles.summaryRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>
-              ${bookingData.pricing.total_amount}
-            </Text>
+            <Text style={styles.totalValue}>${totalAmount.toFixed(2)}</Text>
           </View>
         </View>
 
@@ -188,7 +201,7 @@ export default function StripePaymentScreen() {
       {/* Pay Button */}
       <View style={styles.footer}>
         <Button
-          title={`Pay $${bookingData.pricing.total_amount}`}
+          title={`Pay $${totalAmount.toFixed(2)}`}
           onPress={handlePayment}
           loading={loading}
           disabled={!cardComplete || !clientSecret}

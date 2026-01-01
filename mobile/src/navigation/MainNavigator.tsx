@@ -1,10 +1,11 @@
 // src/navigation/MainNavigator.tsx
-// Main Navigator - Bottom tabs + main app screens
-
 import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { COLORS, SIZES } from '../constants/theme';
+import { useCartStore } from '../store/cartStore';
 
 // Import real screens
 import HomeScreen from '../screens/home/HomeScreen';
@@ -14,18 +15,34 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import SearchScreen from '../screens/home/SearchScreen';
 import MyBookingsScreen from '../screens/profile/MyBookingsScreen';
 
-// Placeholder screens (will be created in next batches)
-import { View, Text, StyleSheet } from 'react-native';
-
-const PlaceholderScreen = ({ name }: { name: string }) => (
-  <View style={styles.placeholder}>
-    <Text style={styles.placeholderText}>{name}</Text>
-    <Text style={styles.placeholderSubtext}>Coming in next batch! 🚀</Text>
-  </View>
-);
-
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+// Cart Badge Component
+function CartBadge() {
+  const itemCount = useCartStore(state => state.getTotalItems());
+  
+  if (itemCount === 0) return null;
+  
+  return (
+    <View style={{
+      position: 'absolute',
+      top: -5,
+      right: -10,
+      backgroundColor: COLORS.error,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+    }}>
+      <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
+        {itemCount}
+      </Text>
+    </View>
+  );
+}
 
 function HomeTabs() {
   return (
@@ -72,6 +89,19 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
+        name="Cart"
+        component={require('../screens/booking/CartScreen').default}
+        options={{
+          tabBarLabel: 'Cart',
+          tabBarIcon: ({ color }) => (
+            <View>
+              <Text style={{ fontSize: 24 }}>🛒</Text>
+              <CartBadge />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
@@ -83,70 +113,43 @@ function HomeTabs() {
   );
 }
 
+// Main Stack Navigator
 export default function MainNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={HomeTabs} />
-      
-      {/* Home navigation screens */}
-      <Stack.Screen name="CategoryGrid" component={require('../screens/home/CategoryGridScreen').default} />
-      <Stack.Screen name="CategoryDetail" component={require('../screens/home/CategoryDetailScreen').default} />
-      <Stack.Screen name="Search" component={require('../screens/home/SearchScreen').default} />
-      
-      {/* Equipment screens */}
-      <Stack.Screen 
-        name="EquipmentDetail" 
-        component={EquipmentDetailScreen}
-      />
-      <Stack.Screen 
-        name="EquipmentGallery" 
-        component={require('../screens/equipment/EquipmentGalleryScreen').default}
-        options={{ presentation: 'fullScreenModal' }}
-      />
-      
-      {/* Booking screens */}
-      <Stack.Screen 
-        name="DateSelection" 
-        component={DateSelectionScreen}
-      />
-      <Stack.Screen 
-        name="BookingSummary" 
-        component={require('../screens/booking/BookingSummaryScreen').default}
-      />
-      <Stack.Screen 
-        name="PaymentMethod" 
-        component={require('../screens/payment/PaymentMethodScreen').default}
-      />
-      <Stack.Screen 
-        name="StripePayment" 
-        component={require('../screens/payment/StripePaymentScreen').default}
-      />
-      
-      {/* Support screens */}
-      <Stack.Screen 
-        name="HelpCenter" 
-        component={require('../screens/support/HelpCenterScreen').default}
-      />
-    </Stack.Navigator>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MainTabs" component={HomeTabs} />
+        
+        {/* Equipment & Booking Flow */}
+        <Stack.Screen 
+          name="EquipmentDetail" 
+          component={EquipmentDetailScreen}
+        />
+        <Stack.Screen 
+          name="DateSelection" 
+          component={DateSelectionScreen}
+        />
+        <Stack.Screen 
+          name="AddToCartConfirm" 
+          component={require('../screens/booking/AddToCartConfirmScreen').default}
+        />
+        
+        {/* Payment Flow */}
+        <Stack.Screen 
+          name="PaymentMethod" 
+          component={require('../screens/payment/PaymentMethodScreen').default}
+        />
+        <Stack.Screen 
+          name="StripePayment" 
+          component={require('../screens/payment/StripePaymentScreen').default}
+        />
+        
+        {/* Support */}
+        <Stack.Screen 
+          name="HelpCenter" 
+          component={require('../screens/support/HelpCenterScreen').default}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    padding: SIZES.padding,
-  },
-  placeholderText: {
-    fontSize: SIZES.h2,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: SIZES.sm,
-  },
-  placeholderSubtext: {
-    fontSize: SIZES.body,
-    color: COLORS.textSecondary,
-  },
-});

@@ -56,7 +56,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/bookings', bookingRoutes);
 
 // Payment routes
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
