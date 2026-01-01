@@ -13,6 +13,7 @@ import categoryRoutes from './routes/category.routes';
 import bookingRoutes from './routes/booking.routes';
 import paymentRoutes from './routes/payment.routes';
 import cartRoutes from './routes/cart.routes';
+import reviewRoutes from './routes/review.routes';  // ← NEW!
 
 // Load environment variables
 dotenv.config();
@@ -61,6 +62,9 @@ app.use('/api/payment', paymentRoutes);
 
 // Cart routes
 app.use('/api/cart', cartRoutes);
+
+// Review routes ← NEW!
+app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
@@ -123,6 +127,8 @@ app.listen(PORT, () => {
 ║   Port: ${PORT}                                    ║
 ║   Environment: ${process.env.NODE_ENV || 'development'}              ║
 ║   Time: ${new Date().toLocaleString()}    ║
+║                                               ║
+║   ⭐ NEW: Reviews API enabled!                ║
 ║                                               ║
 ╚═══════════════════════════════════════════════╝
   `);

@@ -1,5 +1,6 @@
 // src/screens/equipment/EquipmentDetailScreen.tsx
-// Equipment Detail Screen - Full product page with booking
+// Equipment Detail Screen - Full product page with booking + REVIEWS
+// FIXED: TypeScript navigation errors
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -16,6 +17,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
 import { equipmentAPI } from '../../services/api';
+import RateEquipmentModal from '../../components/RateEquipmentModal';
+import EquipmentReviews from '../../components/EquipmentReviews';
+import api from '../../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -25,11 +29,14 @@ export default function EquipmentDetailScreen() {
   const { id } = route.params as any;
 
   const [equipment, setEquipment] = useState<any>(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   useEffect(() => {
     loadEquipment();
+    loadReviews();
   }, [id]);
 
   const loadEquipment = async () => {
@@ -43,6 +50,46 @@ export default function EquipmentDetailScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadReviews = async () => {
+    try {
+      const response = await api.get(`/reviews/equipment/${id}`);
+      if (response.data.success) {
+        setReviews(response.data.data.reviews);
+      }
+    } catch (error) {
+      console.error('Load reviews error:', error);
+    }
+  };
+
+  const handleImagePress = (index: number) => {
+    // Navigate to gallery if screen exists, otherwise just show image
+    if (images.length > 1) {
+      try {
+        (navigation as any).navigate('EquipmentGallery', { 
+          images, 
+          initialIndex: index 
+        });
+      } catch (error) {
+        console.log('Gallery screen not available');
+      }
+    }
+  };
+
+  const handleViewAll = () => {
+    try {
+      (navigation as any).navigate('EquipmentGallery', { 
+        images, 
+        initialIndex: currentImageIndex 
+      });
+    } catch (error) {
+      console.log('Gallery screen not available');
+    }
+  };
+
+  const handleBookNow = () => {
+    (navigation as any).navigate('DateSelection', { equipmentId: id });
   };
 
   if (loading) {
@@ -83,7 +130,6 @@ export default function EquipmentDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Image Gallery */}
         <View style={styles.imageContainer}>
-          {/* Horizontal Scrollable Images */}
           <ScrollView
             horizontal
             pagingEnabled
@@ -100,10 +146,7 @@ export default function EquipmentDetailScreen() {
               <TouchableOpacity
                 key={index}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('EquipmentGallery' as never, { 
-                  images, 
-                  initialIndex: index 
-                } as never)}
+                onPress={() => handleImagePress(index)}
               >
                 <Image 
                   source={{ uri: imageUrl }} 
@@ -114,7 +157,6 @@ export default function EquipmentDetailScreen() {
             ))}
           </ScrollView>
           
-          {/* Image pagination dots */}
           {images.length > 1 && (
             <View style={styles.pagination}>
               {images.map((_: any, index: number) => (
@@ -129,7 +171,6 @@ export default function EquipmentDetailScreen() {
             </View>
           )}
 
-          {/* Image counter badge */}
           {images.length > 1 && (
             <View style={styles.imageCounter}>
               <Text style={styles.imageCounterText}>
@@ -138,14 +179,10 @@ export default function EquipmentDetailScreen() {
             </View>
           )}
 
-          {/* View all images button */}
           {images.length > 1 && (
             <TouchableOpacity
               style={styles.viewAllButton}
-              onPress={() => navigation.navigate('EquipmentGallery' as never, { 
-                images, 
-                initialIndex: currentImageIndex 
-              } as never)}
+              onPress={handleViewAll}
             >
               <Text style={styles.viewAllText}>📷 View All ({images.length})</Text>
             </TouchableOpacity>
@@ -164,7 +201,6 @@ export default function EquipmentDetailScreen() {
                 )}
               </View>
               
-              {/* Availability badge */}
               <View style={[
                 styles.availabilityBadge,
                 equipment.quantity_available > 0 ? styles.availableBadge : styles.unavailableBadge
@@ -175,13 +211,19 @@ export default function EquipmentDetailScreen() {
               </View>
             </View>
 
-            {/* Rating */}
-            {equipment.average_rating > 0 && (
-              <View style={styles.ratingRow}>
-                <Text style={styles.ratingStars}>⭐ {equipment.average_rating.toFixed(1)}</Text>
-                <Text style={styles.ratingCount}>({equipment.total_bookings || 0} rentals)</Text>
-              </View>
-            )}
+            {/* Rating with average */}
+            <View style={styles.ratingRow}>
+              {equipment.average_rating > 0 ? (
+                <>
+                  <Text style={styles.ratingStars}>⭐ {equipment.average_rating.toFixed(1)}</Text>
+                  <Text style={styles.ratingCount}>
+                    ({equipment.review_count || 0} {equipment.review_count === 1 ? 'review' : 'reviews'})
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.ratingCount}>No reviews yet</Text>
+              )}
+            </View>
           </View>
 
           {/* Pricing */}
@@ -243,7 +285,22 @@ export default function EquipmentDetailScreen() {
             </View>
           </View>
 
-          {/* Bottom spacing */}
+          {/* Rate This Product Button */}
+          <TouchableOpacity
+            style={styles.rateButton}
+            onPress={() => setShowRatingModal(true)}
+          >
+            <Text style={styles.rateButtonIcon}>⭐</Text>
+            <Text style={styles.rateButtonText}>Rate This Product</Text>
+          </TouchableOpacity>
+
+          {/* Reviews Section */}
+          <EquipmentReviews
+            reviews={reviews}
+            averageRating={equipment.average_rating || 0}
+            totalReviews={equipment.review_count || 0}
+          />
+
           <View style={{ height: 100 }} />
         </View>
       </ScrollView>
@@ -256,288 +313,79 @@ export default function EquipmentDetailScreen() {
         </View>
         <Button
           title="Book Now"
-          onPress={() => navigation.navigate('DateSelection' as never, { equipmentId: id } as never)}
+          onPress={handleBookNow}
           disabled={equipment.quantity_available === 0}
           style={styles.bookButton}
         />
       </View>
+
+      {/* Rating Modal */}
+      <RateEquipmentModal
+        visible={showRatingModal}
+        onClose={() => setShowRatingModal(false)}
+        equipmentId={id}
+        equipmentName={equipment.name}
+        onSubmitSuccess={() => {
+          loadEquipment(); // Reload to update average rating
+          loadReviews();   // Reload to show new review
+        }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  errorText: {
-    fontSize: SIZES.body,
-    color: COLORS.textSecondary,
-  },
-  header: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: SIZES.paddingHorizontal,
-    zIndex: 10,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOWS.small,
-  },
-  backIcon: {
-    fontSize: 24,
-    color: COLORS.text,
-  },
-  favoriteButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...SHADOWS.small,
-  },
-  favoriteIcon: {
-    fontSize: 24,
-    color: COLORS.primary,
-  },
-  imageContainer: {
-    position: 'relative',
-    height: 400,
-  },
-  mainImage: {
-    width: '100%',
-    height: '100%',
-  },
-  pagination: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: SIZES.xs,
-  },
-  paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.white,
-    opacity: 0.5,
-  },
-  paginationDotActive: {
-    opacity: 1,
-  },
-  viewAllButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: COLORS.white,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusPill,
-    ...SHADOWS.small,
-  },
-  viewAllText: {
-    fontSize: SIZES.caption,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    color: COLORS.text,
-  },
-  imageCounter: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.xs,
-    borderRadius: SIZES.radiusPill,
-  },
-  imageCounterText: {
-    fontSize: SIZES.caption,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    color: COLORS.white,
-  },
-  content: {
-    backgroundColor: COLORS.white,
-    borderTopLeftRadius: SIZES.radiusXL,
-    borderTopRightRadius: SIZES.radiusXL,
-    marginTop: -20,
-    paddingTop: SIZES.lg,
-    paddingHorizontal: SIZES.paddingHorizontal,
-  },
-  titleSection: {
-    marginBottom: SIZES.lg,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: SIZES.sm,
-  },
-  title: {
-    fontSize: SIZES.h2,
-    fontWeight: FONT_WEIGHTS.bold,
-    color: COLORS.text,
-    marginBottom: SIZES.xs,
-  },
-  brand: {
-    fontSize: SIZES.body,
-    color: COLORS.textSecondary,
-  },
-  availabilityBadge: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.xs,
-    borderRadius: SIZES.radiusPill,
-  },
-  availableBadge: {
-    backgroundColor: COLORS.successLight,
-  },
-  unavailableBadge: {
-    backgroundColor: COLORS.errorLight,
-  },
-  availabilityText: {
-    fontSize: SIZES.caption,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    color: COLORS.text,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SIZES.sm,
-  },
-  ratingStars: {
-    fontSize: SIZES.body,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    color: COLORS.text,
-  },
-  ratingCount: {
-    fontSize: SIZES.bodySmall,
-    color: COLORS.textSecondary,
-  },
-  pricingSection: {
-    backgroundColor: COLORS.primaryAlpha,
-    padding: SIZES.md,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.lg,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    gap: SIZES.xl,
-    marginBottom: SIZES.xs,
-  },
-  priceLabel: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.xs,
-  },
-  price: {
-    fontSize: SIZES.h3,
-    fontWeight: FONT_WEIGHTS.bold,
-    color: COLORS.primary,
-  },
-  depositText: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-  },
-  section: {
-    marginBottom: SIZES.lg,
-  },
-  sectionTitle: {
-    fontSize: SIZES.h4,
-    fontWeight: FONT_WEIGHTS.bold,
-    color: COLORS.text,
-    marginBottom: SIZES.md,
-  },
-  description: {
-    fontSize: SIZES.body,
-    color: COLORS.textSecondary,
-    lineHeight: 24,
-  },
-  specRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: SIZES.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  specLabel: {
-    fontSize: SIZES.body,
-    color: COLORS.textSecondary,
-  },
-  specValue: {
-    fontSize: SIZES.body,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    color: COLORS.text,
-  },
-  quickInfo: {
-    flexDirection: 'row',
-    gap: SIZES.md,
-    marginBottom: SIZES.lg,
-  },
-  infoCard: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: SIZES.md,
-    borderRadius: SIZES.radius,
-    alignItems: 'center',
-  },
-  infoIcon: {
-    fontSize: 24,
-    marginBottom: SIZES.xs,
-  },
-  infoLabel: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-    marginBottom: SIZES.xs,
-  },
-  infoValue: {
-    fontSize: SIZES.bodySmall,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    color: COLORS.text,
-    textTransform: 'capitalize',
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    paddingHorizontal: SIZES.paddingHorizontal,
-    paddingVertical: SIZES.md,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    ...SHADOWS.large,
-  },
-  footerPrice: {
-    flex: 1,
-  },
-  footerPriceLabel: {
-    fontSize: SIZES.caption,
-    color: COLORS.textSecondary,
-  },
-  footerPriceValue: {
-    fontSize: SIZES.h4,
-    fontWeight: FONT_WEIGHTS.bold,
-    color: COLORS.primary,
-  },
-  bookButton: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  errorText: { fontSize: SIZES.body, color: COLORS.textSecondary },
+  header: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, zIndex: 10 },
+  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
+  backIcon: { fontSize: 24, color: COLORS.text },
+  favoriteButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
+  favoriteIcon: { fontSize: 24, color: COLORS.primary },
+  imageContainer: { position: 'relative', height: 400 },
+  mainImage: { width, height: 400 },
+  pagination: { position: 'absolute', bottom: 20, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: SIZES.xs },
+  paginationDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.white, opacity: 0.5 },
+  paginationDotActive: { opacity: 1 },
+  viewAllButton: { position: 'absolute', bottom: 20, right: 20, backgroundColor: COLORS.white, paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm, borderRadius: SIZES.radiusPill, ...SHADOWS.small },
+  viewAllText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  imageCounter: { position: 'absolute', top: 20, right: 20, backgroundColor: 'rgba(0, 0, 0, 0.7)', paddingHorizontal: SIZES.md, paddingVertical: SIZES.xs, borderRadius: SIZES.radiusPill },
+  imageCounterText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white },
+  content: { backgroundColor: COLORS.white, borderTopLeftRadius: SIZES.radiusXL, borderTopRightRadius: SIZES.radiusXL, marginTop: -20, paddingTop: SIZES.lg, paddingHorizontal: SIZES.paddingHorizontal },
+  titleSection: { marginBottom: SIZES.lg },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SIZES.sm },
+  title: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  brand: { fontSize: SIZES.body, color: COLORS.textSecondary },
+  availabilityBadge: { paddingHorizontal: SIZES.md, paddingVertical: SIZES.xs, borderRadius: SIZES.radiusPill },
+  availableBadge: { backgroundColor: COLORS.successLight },
+  unavailableBadge: { backgroundColor: COLORS.errorLight },
+  availabilityText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: SIZES.sm },
+  ratingStars: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  ratingCount: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
+  pricingSection: { backgroundColor: COLORS.primaryAlpha, padding: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.lg },
+  priceRow: { flexDirection: 'row', gap: SIZES.xl, marginBottom: SIZES.xs },
+  priceLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
+  price: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  depositText: { fontSize: SIZES.caption, color: COLORS.textSecondary },
+  section: { marginBottom: SIZES.lg },
+  sectionTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  description: { fontSize: SIZES.body, color: COLORS.textSecondary, lineHeight: 24 },
+  specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SIZES.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  specLabel: { fontSize: SIZES.body, color: COLORS.textSecondary },
+  specValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  quickInfo: { flexDirection: 'row', gap: SIZES.md, marginBottom: SIZES.lg },
+  infoCard: { flex: 1, backgroundColor: COLORS.background, padding: SIZES.md, borderRadius: SIZES.radius, alignItems: 'center' },
+  infoIcon: { fontSize: 24, marginBottom: SIZES.xs },
+  infoLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
+  infoValue: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, textTransform: 'capitalize' },
+  rateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primaryAlpha, paddingVertical: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.lg },
+  rateButtonIcon: { fontSize: 20, marginRight: SIZES.sm },
+  rateButtonText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.primary },
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingVertical: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOWS.large },
+  footerPrice: { flex: 1 },
+  footerPriceLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary },
+  footerPriceValue: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  bookButton: { flex: 1 },
 });

@@ -1,41 +1,48 @@
 // src/screens/profile/ProfileScreen.tsx
-// Profile Screen - User profile with settings and logout
-
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
-import { useAuthStore } from '../../store/authStore';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  const { user, logout } = useAuthStore();
+  const [user, setUser] = useState<any>(null);
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ]
-    );
+  // Reload user data whenever screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+
+  const loadUserData = async () => {
+    try {
+      const userJson = await AsyncStorage.getItem('user');
+      if (userJson) {
+        setUser(JSON.parse(userJson));
+      }
+    } catch (error) {
+      console.error('Load user error:', error);
+    }
   };
 
-  const menuItems = [
+  const handleLogout = async () => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await AsyncStorage.removeItem('token');
+          await AsyncStorage.removeItem('user');
+          navigation.reset({ index: 0, routes: [{ name: 'Auth' as never }] });
+        },
+      },
+    ]);
+  };
+
+  const menuSections = [
     {
       section: 'Account',
       items: [
@@ -59,54 +66,36 @@ export default function ProfileScreen() {
         { icon: '⭐', title: 'Rate App', screen: 'RateApp', available: true },
       ],
     },
-    {
-      section: 'Settings',
-      items: [
-        { icon: '⚙️', title: 'Settings', screen: 'Settings', available: false },
-        { icon: '🔔', title: 'Notifications', screen: 'NotificationSettings', available: false },
-      ],
-    },
   ];
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View>
-
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.userCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.first_name?.[0]?.toUpperCase() || '?'}
-              {user?.last_name?.[0]?.toUpperCase() || ''}
-            </Text>
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>
-              {user?.first_name} {user?.last_name}
-            </Text>
-            <Text style={styles.userEmail}>{user?.email}</Text>
-            {user?.phone && <Text style={styles.userPhone}>📱 {user.phone}</Text>}
+        <View style={styles.header}>
+          <View style={styles.profileSection}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?'}
+              </Text>
+            </View>
+            <Text style={styles.name}>{user?.full_name || 'User'}</Text>
+            <Text style={styles.email}>{user?.email || ''}</Text>
           </View>
         </View>
 
-        {menuItems.map((section, index) => (
-          <View key={index} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.section}</Text>
-            <View style={styles.menuCard}>
+        <View style={styles.content}>
+          {menuSections.map((section, sectionIndex) => (
+            <View key={sectionIndex} style={styles.section}>
+              <Text style={styles.sectionTitle}>{section.section}</Text>
               {section.items.map((item, itemIndex) => (
                 <TouchableOpacity
                   key={itemIndex}
-                  style={[
-                    styles.menuItem,
-                    itemIndex !== section.items.length - 1 && styles.menuItemBorder,
-                  ]}
+                  style={styles.menuItem}
                   onPress={() => {
                     if (item.available) {
                       navigation.navigate(item.screen as never);
                     } else {
-                      Alert.alert('Coming Soon', `${item.title} will be available soon!`);
+                      Alert.alert('Coming Soon', `${item.title} feature is coming soon!`);
                     }
                   }}
                 >
@@ -114,20 +103,19 @@ export default function ProfileScreen() {
                     <Text style={styles.menuIcon}>{item.icon}</Text>
                     <Text style={styles.menuTitle}>{item.title}</Text>
                   </View>
-                  <Text style={styles.menuArrow}>›</Text>
+                  <Text style={styles.menuArrow}>→</Text>
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
-        ))}
+          ))}
 
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutIcon}>🚪</Text>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Text style={styles.logoutIcon}>🚪</Text>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
 
-        <Text style={styles.version}>PSIV Rentals v1.0.0</Text>
-        <View style={{ height: 100 }} />
+          <Text style={styles.version}>Version 1.0.0</Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -135,26 +123,22 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
-  headerTitle: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
-  userCard: { backgroundColor: COLORS.white, marginHorizontal: SIZES.paddingHorizontal, marginTop: SIZES.md, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, flexDirection: 'row', alignItems: 'center', ...SHADOWS.card },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginRight: SIZES.md },
-  avatarText: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white },
-  userInfo: { flex: 1 },
-  userName: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
-  userEmail: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  userPhone: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
-  section: { marginTop: SIZES.lg },
-  sectionTitle: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.textSecondary, marginBottom: SIZES.sm, marginLeft: SIZES.paddingHorizontal, textTransform: 'uppercase', letterSpacing: 0.5 },
-  menuCard: { backgroundColor: COLORS.white, marginHorizontal: SIZES.paddingHorizontal, borderRadius: SIZES.radiusLarge, ...SHADOWS.small },
-  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: SIZES.md },
-  menuItemBorder: { borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  menuItemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  header: { backgroundColor: COLORS.primary, paddingTop: 60, paddingBottom: SIZES.xl, borderBottomLeftRadius: SIZES.radiusLarge, borderBottomRightRadius: SIZES.radiusLarge },
+  profileSection: { alignItems: 'center' },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.md },
+  avatarText: { fontSize: 32, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  name: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white, marginBottom: SIZES.xs },
+  email: { fontSize: SIZES.body, color: COLORS.white, opacity: 0.9 },
+  content: { padding: SIZES.paddingHorizontal },
+  section: { marginTop: SIZES.lg, marginBottom: SIZES.md },
+  sectionTitle: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.bold, color: COLORS.textSecondary, marginBottom: SIZES.sm, textTransform: 'uppercase', letterSpacing: 1 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.white, paddingVertical: SIZES.md, paddingHorizontal: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.xs, ...SHADOWS.small },
+  menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
   menuIcon: { fontSize: 24, marginRight: SIZES.md },
   menuTitle: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.medium, color: COLORS.text },
-  menuArrow: { fontSize: 24, color: COLORS.textLight },
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.errorLight, marginHorizontal: SIZES.paddingHorizontal, marginTop: SIZES.xl, padding: SIZES.md, borderRadius: SIZES.radiusLarge },
+  menuArrow: { fontSize: 20, color: COLORS.textSecondary },
+  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.errorLight, paddingVertical: SIZES.md, borderRadius: SIZES.radius, marginTop: SIZES.xl, marginBottom: SIZES.lg },
   logoutIcon: { fontSize: 20, marginRight: SIZES.sm },
   logoutText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.error },
-  version: { fontSize: SIZES.caption, color: COLORS.textLight, textAlign: 'center', marginTop: SIZES.xl },
+  version: { fontSize: SIZES.caption, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SIZES.xl },
 });
