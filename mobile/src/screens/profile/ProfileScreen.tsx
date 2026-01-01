@@ -39,7 +39,7 @@ export default function ProfileScreen() {
     {
       section: 'Account',
       items: [
-        { icon: '👤', title: 'Edit Profile', screen: 'EditProfile', available: false },
+        { icon: '👤', title: 'Edit Profile', screen: 'EditProfile', available: true },
         { icon: '🔒', title: 'Change Password', screen: 'ChangePassword', available: false },
       ],
     },

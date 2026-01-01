@@ -149,15 +149,17 @@ export default function MainNavigator() {
         name="StripePayment" 
         component={require('../screens/payment/StripePaymentScreen').default}
       />
-      <Stack.Screen 
-        name="PaymentSuccess" 
-        component={require('../screens/payment/PaymentSuccessScreen').default}
-      />
       
       {/* Support */}
       <Stack.Screen 
         name="HelpCenter" 
         component={require('../screens/support/HelpCenterScreen').default}
+      />
+      
+      {/* Profile */}
+      <Stack.Screen 
+        name="EditProfile" 
+        component={require('../screens/profile/EditProfileScreen').default}
       />
     </Stack.Navigator>
   );
