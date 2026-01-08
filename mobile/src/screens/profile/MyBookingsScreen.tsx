@@ -1,5 +1,5 @@
 // src/screens/profile/MyBookingsScreen.tsx
-// My Bookings Screen - Shows active and past bookings
+// My Bookings Screen - Shows active and past bookings with detail modal
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -14,6 +14,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
 import { bookingAPI } from '../../services/api';
+import BookingDetailModal from '../../components/BookingDetailModal';
 
 export default function MyBookingsScreen() {
   const navigation = useNavigation();
@@ -21,6 +22,8 @@ export default function MyBookingsScreen() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     loadBookings();
@@ -28,7 +31,7 @@ export default function MyBookingsScreen() {
 
   const loadBookings = async () => {
     try {
-      const response = await bookingAPI.getMyBookings();
+      const response = await bookingAPI.getUserBookings();
       if (response.success) {
         const now = new Date();
         const filtered = response.data.filter((booking: any) => {
@@ -52,6 +55,16 @@ export default function MyBookingsScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     loadBookings();
+  };
+
+  const handleBookingPress = (booking: any) => {
+    setSelectedBooking(booking);
+    setModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setSelectedBooking(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -78,10 +91,7 @@ export default function MyBookingsScreen() {
     <TouchableOpacity
       key={booking.id}
       style={styles.bookingCard}
-      onPress={() => {
-        // TODO: Navigate to booking detail
-        console.log('Booking clicked:', booking.id);
-      }}
+      onPress={() => handleBookingPress(booking)}
     >
       <View style={styles.bookingHeader}>
         <View>
@@ -114,6 +124,11 @@ export default function MyBookingsScreen() {
           <Text style={styles.detailLabel}>Booking ID</Text>
           <Text style={styles.detailValueSmall}>#{booking.id.slice(0, 8)}</Text>
         </View>
+      </View>
+
+      {/* Tap to view indicator */}
+      <View style={styles.tapIndicator}>
+        <Text style={styles.tapIndicatorText}>Tap to view details →</Text>
       </View>
     </TouchableOpacity>
   );
@@ -183,6 +198,14 @@ export default function MyBookingsScreen() {
           <View style={{ height: 100 }} />
         </ScrollView>
       )}
+
+      {/* Booking Detail Modal */}
+      <BookingDetailModal
+        visible={modalVisible}
+        booking={selectedBooking}
+        onClose={handleModalClose}
+        onRefresh={loadBookings}
+      />
     </View>
   );
 }
@@ -210,6 +233,8 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
   detailValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
   detailValueSmall: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.medium, color: COLORS.textSecondary },
+  tapIndicator: { marginTop: SIZES.sm, alignItems: 'center' },
+  tapIndicatorText: { fontSize: SIZES.caption, color: COLORS.primary, fontWeight: FONT_WEIGHTS.medium },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.xxl * 2 },
   emptyEmoji: { fontSize: 64, marginBottom: SIZES.lg },
   emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
