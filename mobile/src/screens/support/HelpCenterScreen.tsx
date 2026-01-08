@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
+import { Icon } from '../../components/ui/Icon';
 
 export default function HelpCenterScreen() {
   const navigation = useNavigation();
@@ -23,7 +24,7 @@ export default function HelpCenterScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Help Center</Text>
         <View style={{ width: 40 }} />
@@ -31,7 +32,7 @@ export default function HelpCenterScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Icon name="search" size={20} color={COLORS.textLight} style={{ marginRight: SIZES.sm }} />
           <Text style={styles.searchText}>Search for help...</Text>
         </View>
 
@@ -66,21 +67,19 @@ export default function HelpCenterScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  title: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  title: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, padding: SIZES.md, margin: SIZES.paddingHorizontal, marginTop: SIZES.md, borderRadius: SIZES.radius, ...SHADOWS.small },
-  searchIcon: { fontSize: 20, marginRight: SIZES.sm },
   searchText: { fontSize: SIZES.body, color: COLORS.textLight },
-  sectionTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginTop: SIZES.lg, marginBottom: SIZES.md, paddingHorizontal: SIZES.paddingHorizontal },
+  sectionTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginTop: SIZES.lg, marginBottom: SIZES.md, paddingHorizontal: SIZES.paddingHorizontal },
   faqCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, marginHorizontal: SIZES.paddingHorizontal, marginBottom: SIZES.sm, overflow: 'hidden', ...SHADOWS.small },
   faqHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: SIZES.md },
-  question: { flex: 1, fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, paddingRight: SIZES.sm },
-  toggle: { fontSize: 28, color: COLORS.primary, fontWeight: FONT_WEIGHTS.bold },
+  question: { flex: 1, fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text, paddingRight: SIZES.sm },
+  toggle: { fontSize: 28, color: COLORS.primary, fontFamily: FONTS.bold },
   answer: { paddingHorizontal: SIZES.md, paddingBottom: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border },
   answerText: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary, lineHeight: 20, paddingTop: SIZES.sm },
   contact: { alignItems: 'center', padding: SIZES.xl, marginTop: SIZES.lg },
-  contactTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  contactTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   contactSub: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.lg },
   btn: { backgroundColor: COLORS.primary, paddingHorizontal: SIZES.xl, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill },
-  btnText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white },
+  btnText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.white },
 });

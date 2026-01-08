@@ -12,9 +12,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { bookingAPI } from '../../services/api';
 import BookingDetailModal from '../../components/BookingDetailModal';
+import { Icon, IconName } from '../../components/ui/Icon';
 
 export default function MyBookingsScreen() {
   const navigation = useNavigation();
@@ -77,13 +78,13 @@ export default function MyBookingsScreen() {
     }
   };
 
-  const getStatusEmoji = (status: string) => {
+  const getStatusIcon = (status: string): IconName => {
     switch (status) {
-      case 'confirmed': return '✅';
-      case 'pending': return '⏳';
-      case 'cancelled': return '❌';
-      case 'completed': return '✓';
-      default: return '📋';
+      case 'confirmed': return 'check-circle';
+      case 'pending': return 'clock';
+      case 'cancelled': return 'x-circle';
+      case 'completed': return 'check';
+      default: return 'clipboard';
     }
   };
 
@@ -94,8 +95,8 @@ export default function MyBookingsScreen() {
       onPress={() => handleBookingPress(booking)}
     >
       <View style={styles.bookingHeader}>
-        <View>
-          <Text style={styles.equipmentName}>{booking.equipment_name || 'Equipment'}</Text>
+        <View style={styles.bookingInfo}>
+          <Text style={styles.equipmentName} numberOfLines={2}>{booking.equipment_name || 'Equipment'}</Text>
           <Text style={styles.bookingDates}>
             {new Date(booking.start_date).toLocaleDateString('en-US', {
               month: 'short',
@@ -108,7 +109,7 @@ export default function MyBookingsScreen() {
           </Text>
         </View>
         <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) + '20' }]}>
-          <Text style={styles.statusEmoji}>{getStatusEmoji(booking.status)}</Text>
+          <Icon name={getStatusIcon(booking.status)} size={12} color={getStatusColor(booking.status)} style={{ marginRight: 4 }} />
           <Text style={[styles.statusText, { color: getStatusColor(booking.status) }]}>
             {booking.status}
           </Text>
@@ -176,9 +177,9 @@ export default function MyBookingsScreen() {
             bookings.map(renderBooking)
           ) : (
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>
-                {activeTab === 'active' ? '📅' : '📋'}
-              </Text>
+              <View style={styles.emptyIconContainer}>
+                <Icon name={activeTab === 'active' ? 'calendar' : 'clipboard'} size={64} color={COLORS.primary} />
+              </View>
               <Text style={styles.emptyTitle}>
                 {activeTab === 'active' ? 'No Active Bookings' : 'No Past Bookings'}
               </Text>
@@ -213,32 +214,32 @@ export default function MyBookingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
-  headerTitle: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text },
   tabs: { flexDirection: 'row', backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingBottom: SIZES.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   tab: { flex: 1, paddingVertical: SIZES.sm, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabActive: { borderBottomColor: COLORS.primary },
-  tabText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.medium, color: COLORS.textSecondary },
-  tabTextActive: { color: COLORS.primary, fontWeight: FONT_WEIGHTS.bold },
+  tabText: { fontSize: SIZES.body, fontFamily: FONTS.medium, color: COLORS.textSecondary },
+  tabTextActive: { color: COLORS.primary, fontFamily: FONTS.bold },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { flex: 1, padding: SIZES.paddingHorizontal },
-  bookingCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, marginTop: SIZES.md, ...SHADOWS.card },
+  bookingCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.md, marginTop: SIZES.md, ...SHADOWS.card },
   bookingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SIZES.md },
-  equipmentName: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  bookingInfo: { flex: 1, marginRight: SIZES.sm },
+  equipmentName: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   bookingDates: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
-  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: SIZES.sm, paddingVertical: SIZES.xs, borderRadius: SIZES.radiusPill },
-  statusEmoji: { fontSize: 14, marginRight: SIZES.xs },
-  statusText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, textTransform: 'capitalize' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: SIZES.radiusPill, flexShrink: 0 },
+  statusText: { fontSize: 11, fontFamily: FONTS.semiBold, textTransform: 'capitalize' },
   bookingDetails: { borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: SIZES.md },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.xs },
   detailLabel: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
-  detailValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
-  detailValueSmall: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.medium, color: COLORS.textSecondary },
+  detailValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
+  detailValueSmall: { fontSize: SIZES.bodySmall, fontFamily: FONTS.medium, color: COLORS.textSecondary },
   tapIndicator: { marginTop: SIZES.sm, alignItems: 'center' },
-  tapIndicatorText: { fontSize: SIZES.caption, color: COLORS.primary, fontWeight: FONT_WEIGHTS.medium },
+  tapIndicatorText: { fontSize: SIZES.caption, color: COLORS.primary, fontFamily: FONTS.medium },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.xxl * 2 },
-  emptyEmoji: { fontSize: 64, marginBottom: SIZES.lg },
-  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  emptyIconContainer: { marginBottom: SIZES.lg },
+  emptyTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   emptySubtitle: { fontSize: SIZES.body, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SIZES.xl },
   browseButton: { backgroundColor: COLORS.primary, paddingHorizontal: SIZES.xl, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill },
-  browseButtonText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white },
+  browseButtonText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.white },
 });

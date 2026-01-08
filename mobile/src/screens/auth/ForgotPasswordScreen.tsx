@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { authAPI } from '../../services/api';
@@ -53,6 +53,6 @@ export default function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white, padding: SIZES.paddingHorizontal },
-  title: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginTop: SIZES.xxl, marginBottom: SIZES.sm },
+  title: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text, marginTop: SIZES.xxl, marginBottom: SIZES.sm },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.xl },
 });

@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
+import { Icon } from '../../components/ui/Icon';
 import { equipmentAPI, categoryAPI } from '../../services/api';
 
 export default function CategoryDetailScreen() {
@@ -79,7 +80,7 @@ export default function CategoryDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {category?.name || 'Category'}
@@ -102,7 +103,9 @@ export default function CategoryDetailScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>📦</Text>
+              <View style={styles.emptyIconContainer}>
+                <Icon name="box" size={80} color={COLORS.textLight} />
+              </View>
               <Text style={styles.emptyTitle}>No Equipment</Text>
               <Text style={styles.emptyText}>
                 No equipment available in this category
@@ -118,22 +121,21 @@ export default function CategoryDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: SIZES.paddingHorizontal },
   row: { justifyContent: 'space-between' },
   card: { width: '48%', backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, marginBottom: SIZES.md, overflow: 'hidden', ...SHADOWS.card },
   image: { width: '100%', height: 150, backgroundColor: COLORS.background },
   cardContent: { padding: SIZES.md },
-  name: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  name: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   brand: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.sm },
-  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  price: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
-  badge: { backgroundColor: COLORS.successLight, paddingHorizontal: SIZES.sm, paddingVertical: 4, borderRadius: SIZES.radiusPill },
-  badgeText: { fontSize: SIZES.caption, color: COLORS.success, fontWeight: FONT_WEIGHTS.semiBold },
+  priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 4 },
+  price: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.primary },
+  badge: { backgroundColor: COLORS.successLight, paddingHorizontal: SIZES.xs, paddingVertical: 2, borderRadius: SIZES.radiusPill },
+  badgeText: { fontSize: SIZES.tiny, color: COLORS.success, fontFamily: FONTS.semiBold },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: SIZES.xxl * 2 },
-  emptyIcon: { fontSize: 80, marginBottom: SIZES.lg },
-  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  emptyIconContainer: { marginBottom: SIZES.lg },
+  emptyTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   emptyText: { fontSize: SIZES.body, color: COLORS.textSecondary, textAlign: 'center' },
 });

@@ -9,7 +9,8 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import { Icon } from '../../components/ui/Icon';
 
 const { width, height } = Dimensions.get('window');
 
@@ -45,7 +46,7 @@ export default function SplashScreen() {
       >
         {/* Logo/Icon */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoEmoji}>🎬</Text>
+          <Icon name="film" size={64} color={COLORS.white} />
         </View>
 
         {/* App Name */}
@@ -92,12 +93,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.xl,
   },
-  logoEmoji: {
-    fontSize: 64,
-  },
   appName: {
     fontSize: SIZES.h1 + 8,
-    fontWeight: FONT_WEIGHTS.bold,
+    fontFamily: FONTS.bold,
     color: COLORS.white,
     marginBottom: SIZES.sm,
     letterSpacing: 1,

@@ -3,7 +3,8 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
+import { Icon } from './ui/Icon';
 
 interface Review {
   id: string;
@@ -29,9 +30,9 @@ export default function EquipmentReviews({
 }: EquipmentReviewsProps) {
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <Text key={i} style={styles.starIcon}>
-        {i < rating ? '⭐' : '☆'}
-      </Text>
+      <View key={i} style={styles.starIconWrapper}>
+        <Icon name="star" size={16} color={i < rating ? COLORS.warning : COLORS.border} />
+      </View>
     ));
   };
 
@@ -52,7 +53,9 @@ export default function EquipmentReviews({
   if (!reviews || reviews.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>⭐</Text>
+        <View style={styles.emptyIconContainer}>
+          <Icon name="star" size={60} color={COLORS.warning} />
+        </View>
         <Text style={styles.emptyTitle}>No reviews yet</Text>
         <Text style={styles.emptySubtitle}>Be the first to review this product!</Text>
       </View>
@@ -106,7 +109,7 @@ export default function EquipmentReviews({
                 )}
               </View>
               <TouchableOpacity style={styles.commentBtn}>
-                <Text style={styles.commentIcon}>💬</Text>
+                <Icon name="message-circle" size={20} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -131,27 +134,26 @@ const styles = StyleSheet.create({
   container: { paddingVertical: SIZES.lg },
   summaryCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, marginBottom: SIZES.lg, ...SHADOWS.card },
   ratingBadge: { alignItems: 'center' },
-  ratingNumber: { fontSize: 36, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: 4 },
+  ratingNumber: { fontSize: 36, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: 4 },
   starsRow: { flexDirection: 'row' },
-  starIcon: { fontSize: 16, marginHorizontal: 1 },
+  starIconWrapper: { marginHorizontal: 1 },
   totalText: { fontSize: SIZES.body, color: COLORS.textSecondary },
   reviewsList: {},
-  sectionTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  sectionTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
   reviewCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.md, marginBottom: SIZES.sm, ...SHADOWS.small },
   reviewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SIZES.sm },
   userInfo: { flexDirection: 'row', alignItems: 'center' },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginRight: SIZES.sm },
-  avatarText: { fontSize: 14, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white },
-  userName: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  avatarText: { fontSize: 14, fontFamily: FONTS.bold, color: COLORS.white },
+  userName: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   userHandle: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   commentBtn: { padding: 4 },
-  commentIcon: { fontSize: 20 },
   ratingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.sm },
   ratingText: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginLeft: 4 },
   reviewText: { fontSize: SIZES.body, color: COLORS.text, lineHeight: 20, marginBottom: SIZES.sm },
   reviewDate: { fontSize: SIZES.caption, color: COLORS.textLight },
   emptyContainer: { alignItems: 'center', paddingVertical: SIZES.xxl },
-  emptyIcon: { fontSize: 60, marginBottom: SIZES.md },
-  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  emptyIconContainer: { marginBottom: SIZES.md },
+  emptyTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   emptySubtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });

@@ -13,8 +13,9 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { bookingAPI } from '../../services/api';
+import { Icon } from '../../components/ui/Icon';
 
 export default function PastBookingsScreen() {
   const navigation = useNavigation();
@@ -106,7 +107,8 @@ export default function PastBookingsScreen() {
           </View>
           {item.status === 'completed' && (
             <TouchableOpacity style={styles.rateBtn}>
-              <Text style={styles.rateBtnText}>⭐ Rate</Text>
+              <Icon name="star" size={16} color={COLORS.warning} style={{ marginRight: 4 }} />
+              <Text style={styles.rateBtnText}>Rate</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -119,7 +121,7 @@ export default function PastBookingsScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backIcon}>←</Text>
+            <Icon name="arrow-left" size={28} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Past Bookings</Text>
           <View style={{ width: 40 }} />
@@ -135,7 +137,7 @@ export default function PastBookingsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Past Bookings</Text>
         <View style={{ width: 40 }} />
@@ -152,7 +154,9 @@ export default function PastBookingsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>📋</Text>
+            <View style={styles.emptyIconContainer}>
+              <Icon name="clipboard" size={64} color={COLORS.primary} />
+            </View>
             <Text style={styles.emptyTitle}>No Past Bookings</Text>
             <Text style={styles.emptySubtitle}>Your booking history will appear here</Text>
           </View>
@@ -165,30 +169,29 @@ export default function PastBookingsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: SIZES.paddingHorizontal },
   card: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, marginBottom: SIZES.md, overflow: 'hidden', ...SHADOWS.card },
   image: { width: '100%', height: 180, backgroundColor: COLORS.background, opacity: 0.8 },
   cardContent: { padding: SIZES.md },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SIZES.md },
-  equipmentName: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, flex: 1, marginRight: SIZES.sm },
+  equipmentName: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, flex: 1, marginRight: SIZES.sm },
   statusBadge: { paddingHorizontal: SIZES.sm, paddingVertical: 4, borderRadius: SIZES.radiusPill },
-  statusText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold },
+  statusText: { fontSize: SIZES.caption, fontFamily: FONTS.semiBold },
   dateRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.background, padding: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.md },
   dateItem: { flex: 1 },
   dateLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  dateValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  dateValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   dateArrow: { fontSize: 20, color: COLORS.textSecondary, marginHorizontal: SIZES.sm },
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   priceContainer: {},
   priceLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  price: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
-  rateBtn: { backgroundColor: COLORS.warningLight, paddingHorizontal: SIZES.lg, paddingVertical: SIZES.sm, borderRadius: SIZES.radiusPill },
-  rateBtnText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.warning },
+  price: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text },
+  rateBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.warningLight, paddingHorizontal: SIZES.lg, paddingVertical: SIZES.sm, borderRadius: SIZES.radiusPill },
+  rateBtnText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.warning },
   empty: { alignItems: 'center', paddingVertical: SIZES.xxl * 2 },
-  emptyIcon: { fontSize: 80, marginBottom: SIZES.lg },
-  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  emptyIconContainer: { marginBottom: SIZES.lg },
+  emptyTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   emptySubtitle: { fontSize: SIZES.body, color: COLORS.textSecondary, textAlign: 'center', paddingHorizontal: SIZES.xl },
 });

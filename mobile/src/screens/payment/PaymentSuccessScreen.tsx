@@ -10,8 +10,9 @@ import {
   Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 
 export default function PaymentSuccessScreen() {
   const navigation = useNavigation();
@@ -38,7 +39,7 @@ export default function PaymentSuccessScreen() {
     <View style={styles.container}>
       <View style={styles.content}>
         <Animated.View style={[styles.checkmarkCircle, { transform: [{ scale: scaleAnim }] }]}>
-          <Text style={styles.checkmark}>✓</Text>
+          <Icon name="check" size={64} color={COLORS.white} />
         </Animated.View>
 
         <Animated.View style={{ opacity: fadeAnim, width: '100%' }}>
@@ -70,15 +71,15 @@ export default function PaymentSuccessScreen() {
           <View style={styles.nextSteps}>
             <Text style={styles.nextTitle}>What's Next?</Text>
             <View style={styles.stepRow}>
-              <Text style={styles.stepIcon}>📧</Text>
+              <Icon name="mail" size={24} color={COLORS.primary} style={{ marginRight: SIZES.md }} />
               <Text style={styles.stepText}>Confirmation email sent</Text>
             </View>
             <View style={styles.stepRow}>
-              <Text style={styles.stepIcon}>📅</Text>
+              <Icon name="calendar" size={24} color={COLORS.primary} style={{ marginRight: SIZES.md }} />
               <Text style={styles.stepText}>Pickup details shared 24hrs before</Text>
             </View>
             <View style={styles.stepRow}>
-              <Text style={styles.stepIcon}>💬</Text>
+              <Icon name="message-circle" size={24} color={COLORS.primary} style={{ marginRight: SIZES.md }} />
               <Text style={styles.stepText}>Contact support for questions</Text>
             </View>
           </View>
@@ -99,21 +100,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SIZES.paddingHorizontal },
   checkmarkCircle: { width: 120, height: 120, borderRadius: 60, backgroundColor: COLORS.success, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.xl },
-  checkmark: { fontSize: 64, color: COLORS.white, fontWeight: FONT_WEIGHTS.bold },
-  title: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm, textAlign: 'center' },
+  title: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm, textAlign: 'center' },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.xxl, textAlign: 'center' },
   detailsCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, width: '100%', marginBottom: SIZES.xl },
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SIZES.sm },
   detailLabel: { fontSize: SIZES.body, color: COLORS.textSecondary },
-  detailValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
-  detailValueHighlight: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  detailValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
+  detailValueHighlight: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.primary },
   divider: { height: 1, backgroundColor: COLORS.border },
   nextSteps: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, width: '100%' },
-  nextTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  nextTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
   stepRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: SIZES.md },
-  stepIcon: { fontSize: 24, marginRight: SIZES.md },
   stepText: { flex: 1, fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
   footer: { padding: SIZES.paddingHorizontal, paddingBottom: SIZES.xl },
   secondaryBtn: { paddingVertical: SIZES.md, alignItems: 'center' },
-  secondaryBtnText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.primary },
+  secondaryBtnText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.primary },
 });

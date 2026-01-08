@@ -1,9 +1,11 @@
 // src/routes/equipment.routes.ts
-// Equipment Routes - WITH FEATURED ENDPOINT
+// Equipment Routes - WITH FEATURED ENDPOINT AND IMAGE UPLOAD
 
 import { Router } from 'express';
 import { EquipmentController } from '../controllers/equipment.controller';
+import { UploadController } from '../controllers/upload.controller';
 import { authenticate, authorize } from '../middleware/auth';
+import { uploadMultipleImages, handleMulterError } from '../middleware/upload';
 
 const router = Router();
 
@@ -62,5 +64,31 @@ router.patch('/:id/availability', authenticate, authorize('admin'), EquipmentCon
  * @access  Private (Admin only)
  */
 router.delete('/:id', authenticate, authorize('admin'), EquipmentController.delete);
+
+/**
+ * @route   POST /api/equipment/:id/images
+ * @desc    Upload images for equipment
+ * @access  Private (Admin only)
+ */
+router.post(
+  '/:id/images',
+  authenticate,
+  authorize('admin'),
+  uploadMultipleImages,
+  handleMulterError,
+  UploadController.uploadEquipmentImages
+);
+
+/**
+ * @route   DELETE /api/equipment/:id/images
+ * @desc    Delete an image from equipment
+ * @access  Private (Admin only)
+ */
+router.delete(
+  '/:id/images',
+  authenticate,
+  authorize('admin'),
+  UploadController.deleteEquipmentImage
+);
 
 export default router;

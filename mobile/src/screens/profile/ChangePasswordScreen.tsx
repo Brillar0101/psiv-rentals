@@ -12,8 +12,9 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 import api from '../../services/api';
 
 export default function ChangePasswordScreen() {
@@ -63,7 +64,7 @@ export default function ChangePasswordScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Change Password</Text>
         <View style={{ width: 40 }} />
@@ -72,7 +73,7 @@ export default function ChangePasswordScreen() {
         <View style={styles.content}>
           <View style={styles.iconContainer}>
             <View style={styles.securityIcon}>
-              <Text style={styles.securityIconText}>🔒</Text>
+              <Icon name="lock" size={40} color={COLORS.primary} />
             </View>
             <Text style={styles.securityTitle}>Update Your Password</Text>
             <Text style={styles.securitySubtitle}>Choose a strong password to keep your account secure</Text>
@@ -83,7 +84,7 @@ export default function ChangePasswordScreen() {
               <View style={styles.passwordContainer}>
                 <TextInput style={styles.input} value={formData.currentPassword} onChangeText={(text) => setFormData({ ...formData, currentPassword: text })} placeholder="Enter current password" placeholderTextColor={COLORS.textLight} secureTextEntry={!showCurrentPassword} autoCapitalize="none" />
                 <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
-                  <Text style={styles.eyeIconText}>{showCurrentPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  <Icon name={showCurrentPassword ? 'eye' : 'eye-off'} size={20} color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -92,7 +93,7 @@ export default function ChangePasswordScreen() {
               <View style={styles.passwordContainer}>
                 <TextInput style={styles.input} value={formData.newPassword} onChangeText={(text) => setFormData({ ...formData, newPassword: text })} placeholder="Enter new password" placeholderTextColor={COLORS.textLight} secureTextEntry={!showNewPassword} autoCapitalize="none" />
                 <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowNewPassword(!showNewPassword)}>
-                  <Text style={styles.eyeIconText}>{showNewPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  <Icon name={showNewPassword ? 'eye' : 'eye-off'} size={20} color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.hint}>Must be at least 6 characters</Text>
@@ -102,17 +103,17 @@ export default function ChangePasswordScreen() {
               <View style={styles.passwordContainer}>
                 <TextInput style={styles.input} value={formData.confirmPassword} onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })} placeholder="Confirm new password" placeholderTextColor={COLORS.textLight} secureTextEntry={!showConfirmPassword} autoCapitalize="none" />
                 <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  <Text style={styles.eyeIconText}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
+                  <Icon name={showConfirmPassword ? 'eye' : 'eye-off'} size={20} color={COLORS.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
           <View style={styles.tipsCard}>
             <Text style={styles.tipsTitle}>Password Tips:</Text>
-            <View style={styles.tipRow}><Text style={styles.tipIcon}>✓</Text><Text style={styles.tipText}>Use at least 8 characters</Text></View>
-            <View style={styles.tipRow}><Text style={styles.tipIcon}>✓</Text><Text style={styles.tipText}>Mix uppercase and lowercase letters</Text></View>
-            <View style={styles.tipRow}><Text style={styles.tipIcon}>✓</Text><Text style={styles.tipText}>Include numbers and symbols</Text></View>
-            <View style={styles.tipRow}><Text style={styles.tipIcon}>✓</Text><Text style={styles.tipText}>Avoid common words or patterns</Text></View>
+            <View style={styles.tipRow}><Icon name="check" size={16} color={COLORS.success} /><Text style={styles.tipText}>Use at least 8 characters</Text></View>
+            <View style={styles.tipRow}><Icon name="check" size={16} color={COLORS.success} /><Text style={styles.tipText}>Mix uppercase and lowercase letters</Text></View>
+            <View style={styles.tipRow}><Icon name="check" size={16} color={COLORS.success} /><Text style={styles.tipText}>Include numbers and symbols</Text></View>
+            <View style={styles.tipRow}><Icon name="check" size={16} color={COLORS.success} /><Text style={styles.tipText}>Avoid common words or patterns</Text></View>
           </View>
           <View style={{ height: 100 }} />
         </View>
@@ -127,26 +128,22 @@ export default function ChangePasswordScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   content: { padding: SIZES.paddingHorizontal },
   iconContainer: { alignItems: 'center', marginVertical: SIZES.xl },
-  securityIcon: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.primaryAlpha, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.md },
-  securityIconText: { fontSize: 40 },
-  securityTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  securityIcon: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.primaryAlpha, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.md } as any,
+  securityTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   securitySubtitle: { fontSize: SIZES.body, color: COLORS.textSecondary, textAlign: 'center', paddingHorizontal: SIZES.lg },
   form: { marginTop: SIZES.lg },
   inputGroup: { marginBottom: SIZES.lg },
-  label: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, marginBottom: SIZES.sm },
+  label: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.text, marginBottom: SIZES.sm },
   passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: SIZES.radius, borderWidth: 1, borderColor: COLORS.border, ...SHADOWS.small },
   input: { flex: 1, paddingHorizontal: SIZES.md, paddingVertical: SIZES.md, fontSize: SIZES.body, color: COLORS.text },
   eyeIcon: { paddingHorizontal: SIZES.md },
-  eyeIconText: { fontSize: 20 },
   hint: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginTop: SIZES.xs },
   tipsCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, marginTop: SIZES.lg, ...SHADOWS.card },
-  tipsTitle: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
-  tipRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.sm },
-  tipIcon: { fontSize: 16, color: COLORS.success, marginRight: SIZES.sm, width: 20 },
+  tipsTitle: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  tipRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.sm, gap: SIZES.sm },
   tipText: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary, flex: 1 },
   footer: { backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingVertical: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOWS.large },
 });

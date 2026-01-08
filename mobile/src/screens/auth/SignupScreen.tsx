@@ -1,5 +1,5 @@
 // src/screens/auth/SignupScreen.tsx
-// Signup Screen - User registration
+// Signup Screen - User registration with Terms & Conditions
 
 import React, { useState } from 'react';
 import {
@@ -11,16 +11,102 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { Icon } from '../../components/ui/Icon';
 import { authAPI } from '../../services/api';
+
+// Checkbox component
+interface CheckboxProps {
+  checked: boolean;
+  onPress: () => void;
+  label: React.ReactNode;
+  error?: string;
+}
+
+const Checkbox = ({ checked, onPress, label, error }: CheckboxProps) => (
+  <View style={styles.checkboxContainer}>
+    <TouchableOpacity
+      style={[
+        styles.checkbox,
+        checked && styles.checkboxChecked,
+        error && styles.checkboxError,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      {checked && <Icon name="check" size={14} color={COLORS.white} />}
+    </TouchableOpacity>
+    <View style={styles.checkboxLabelContainer}>{label}</View>
+  </View>
+);
+
+// Terms & Conditions content
+const TERMS_CONTENT = `
+PSIV Rentals - Terms & Conditions
+
+Last Updated: January 2026
+
+1. ACCEPTANCE OF TERMS
+By creating an account and using the PSIV Rentals mobile application, you agree to be bound by these Terms & Conditions.
+
+2. RENTAL AGREEMENT
+- All equipment rentals are subject to availability
+- Rental periods are calculated on a daily basis
+- Equipment must be returned in the same condition as received
+- Late returns may incur additional charges
+
+3. DAMAGE & LOSS
+- You are responsible for all equipment during your rental period
+- A damage deposit is required for all rentals
+- Lost or stolen equipment must be reported immediately
+- You may be charged the full replacement value for lost items
+
+4. CANCELLATION POLICY
+- Cancellations made 48+ hours before rental start: Full refund
+- Cancellations made 24-48 hours before rental start: 50% refund
+- Cancellations made less than 24 hours: No refund
+
+5. PAYMENT
+- All prices are in USD
+- Payment is due at time of booking
+- We accept major credit cards and digital payment methods
+
+6. USER CONDUCT
+- You must be 18 years or older to rent equipment
+- Provide accurate and truthful information
+- Do not share your account credentials
+- Report any issues with equipment immediately
+
+7. DATA COLLECTION & PRIVACY
+- We collect and process your personal data as described in our Privacy Policy
+- Search data may be used to improve our services (with your consent)
+- Your data is stored securely and not sold to third parties
+- You can request data deletion at any time
+
+8. LIABILITY
+- PSIV Rentals is not liable for any indirect or consequential damages
+- Our liability is limited to the rental amount paid
+- Equipment is provided "as is" for professional use
+
+9. MODIFICATIONS
+We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of modified terms.
+
+10. CONTACT
+For questions about these terms, contact us at:
+Email: legal@psivrentals.com
+Phone: (555) 123-4567
+
+By checking "I agree to the Terms & Conditions", you acknowledge that you have read, understood, and agree to be bound by these terms.
+`;
 
 export default function SignupScreen() {
   const navigation = useNavigation();
-  
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -29,6 +115,9 @@ export default function SignupScreen() {
     password: '',
     confirmPassword: '',
   });
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [dataConsentAccepted, setDataConsentAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any>({});
@@ -68,6 +157,11 @@ export default function SignupScreen() {
       valid = false;
     }
 
+    if (!termsAccepted) {
+      newErrors.terms = 'You must accept the Terms & Conditions';
+      valid = false;
+    }
+
     setErrors(newErrors);
     return valid;
   };
@@ -83,6 +177,8 @@ export default function SignupScreen() {
         first_name: formData.first_name.trim(),
         last_name: formData.last_name.trim(),
         phone: formData.phone.trim() || undefined,
+        terms_accepted: termsAccepted,
+        data_collection_consent: dataConsentAccepted,
       });
 
       if (response.success) {
@@ -105,6 +201,16 @@ export default function SignupScreen() {
   const updateField = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
     setErrors({ ...errors, [field]: '' });
+  };
+
+  const handleTermsPress = () => {
+    setShowTermsModal(true);
+  };
+
+  const handleAcceptTerms = () => {
+    setTermsAccepted(true);
+    setErrors({ ...errors, terms: '' });
+    setShowTermsModal(false);
   };
 
   return (
@@ -170,7 +276,7 @@ export default function SignupScreen() {
             onChangeText={(text) => updateField('password', text)}
             error={errors.password}
             secureTextEntry={!showPassword}
-            rightIcon={<Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>}
+            rightIcon={<Icon name={showPassword ? 'eye' : 'eye-off'} size={20} color={COLORS.textSecondary} />}
             onRightIconPress={() => setShowPassword(!showPassword)}
           />
 
@@ -182,6 +288,41 @@ export default function SignupScreen() {
             error={errors.confirmPassword}
             secureTextEntry={!showPassword}
           />
+
+          {/* Terms & Conditions Section */}
+          <View style={styles.termsSection}>
+            <Checkbox
+              checked={termsAccepted}
+              onPress={() => {
+                setTermsAccepted(!termsAccepted);
+                setErrors({ ...errors, terms: '' });
+              }}
+              error={errors.terms}
+              label={
+                <Text style={styles.termsText}>
+                  I agree to the{' '}
+                  <Text style={styles.termsLink} onPress={handleTermsPress}>
+                    Terms & Conditions
+                  </Text>
+                  {' '}*
+                </Text>
+              }
+            />
+            {errors.terms && <Text style={styles.errorText}>{errors.terms}</Text>}
+
+            <Checkbox
+              checked={dataConsentAccepted}
+              onPress={() => setDataConsentAccepted(!dataConsentAccepted)}
+              label={
+                <Text style={styles.termsText}>
+                  I consent to the collection and use of my search data to improve services (optional)
+                </Text>
+              }
+            />
+            <Text style={styles.dataConsentNote}>
+              This helps us understand what equipment our customers are looking for and improve our inventory.
+            </Text>
+          </View>
 
           <Button
             title="Create Account"
@@ -200,6 +341,44 @@ export default function SignupScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Terms & Conditions Modal */}
+      <Modal
+        visible={showTermsModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowTermsModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Terms & Conditions</Text>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowTermsModal(false)}
+            >
+              <Icon name="x" size={24} color={COLORS.text} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <Text style={styles.termsContent}>{TERMS_CONTENT}</Text>
+          </ScrollView>
+
+          <View style={styles.modalFooter}>
+            <Button
+              title="Decline"
+              variant="outline"
+              onPress={() => setShowTermsModal(false)}
+              style={styles.modalButton}
+            />
+            <Button
+              title="Accept"
+              onPress={handleAcceptTerms}
+              style={styles.modalButton}
+            />
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -221,7 +400,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: SIZES.h1,
-    fontWeight: FONT_WEIGHTS.bold,
+    fontFamily: FONTS.bold,
     color: COLORS.text,
     marginBottom: SIZES.sm,
   },
@@ -240,9 +419,64 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
   },
-  eyeIcon: {
-    fontSize: 20,
+
+  // Terms Section
+  termsSection: {
+    marginTop: SIZES.md,
+    marginBottom: SIZES.sm,
   },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: SIZES.sm,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SIZES.sm,
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  checkboxError: {
+    borderColor: COLORS.error,
+  },
+  checkboxLabelContainer: {
+    flex: 1,
+  },
+  termsText: {
+    fontSize: SIZES.body,
+    color: COLORS.textSecondary,
+    lineHeight: 22,
+  },
+  termsLink: {
+    color: COLORS.primary,
+    fontFamily: FONTS.semiBold,
+    textDecorationLine: 'underline',
+  },
+  errorText: {
+    fontSize: SIZES.bodySmall,
+    color: COLORS.error,
+    marginTop: -4,
+    marginBottom: SIZES.sm,
+    marginLeft: 30,
+  },
+  dataConsentNote: {
+    fontSize: SIZES.caption,
+    color: COLORS.textLight,
+    marginLeft: 30,
+    marginTop: -4,
+    marginBottom: SIZES.sm,
+    lineHeight: 18,
+  },
+
   signupButton: {
     marginTop: SIZES.md,
   },
@@ -259,6 +493,52 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: SIZES.body,
     color: COLORS.primary,
-    fontWeight: FONT_WEIGHTS.semiBold,
+    fontFamily: FONTS.semiBold,
+  },
+
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SIZES.paddingHorizontal,
+    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+    paddingBottom: SIZES.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: SIZES.h3,
+    fontFamily: FONTS.bold,
+    color: COLORS.text,
+  },
+  modalCloseButton: {
+    padding: SIZES.xs,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: SIZES.paddingHorizontal,
+    paddingVertical: SIZES.lg,
+  },
+  termsContent: {
+    fontSize: SIZES.body,
+    color: COLORS.text,
+    lineHeight: 24,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: SIZES.paddingHorizontal,
+    paddingBottom: Platform.OS === 'ios' ? 34 : SIZES.lg,
+    gap: SIZES.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    ...SHADOWS.medium,
+  },
+  modalButton: {
+    flex: 1,
   },
 });

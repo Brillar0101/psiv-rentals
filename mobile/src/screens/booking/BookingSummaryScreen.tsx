@@ -2,8 +2,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 
 export default function BookingSummaryScreen() {
   const navigation = useNavigation();
@@ -40,7 +41,7 @@ export default function BookingSummaryScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Booking Summary</Text>
         <View style={{ width: 40 }} />
@@ -90,18 +91,17 @@ export default function BookingSummaryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  title: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  title: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   content: { flex: 1, padding: SIZES.paddingHorizontal },
   card: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, marginBottom: SIZES.md, ...SHADOWS.card },
-  sectionTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  sectionTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
   dateText: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  daysText: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  daysText: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.primary },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.sm },
   priceLabel: { fontSize: SIZES.body, color: COLORS.textSecondary },
-  priceValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  priceValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   totalRow: { marginTop: SIZES.md, paddingTop: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border },
-  totalLabel: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
-  totalValue: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  totalLabel: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text },
+  totalValue: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.primary },
   footer: { backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingVertical: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOWS.large },
 });

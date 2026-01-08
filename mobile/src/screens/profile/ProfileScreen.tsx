@@ -1,15 +1,34 @@
 // src/screens/profile/ProfileScreen.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+// Profile Screen with Professional Icons and Rubik Font
+// FIXED: Proper fontFamily usage throughout
+
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
+import { Icon, IconName } from '../../components/ui/Icon';
+import { AvatarImage } from '../../components/ui/ImageWithFallback';
+import { useAlert } from '../../components/ui/AlertModal';
+
+interface MenuItem {
+  icon: IconName;
+  title: string;
+  screen: string;
+  available: boolean;
+  color?: string;
+}
+
+interface MenuSection {
+  section: string;
+  items: MenuItem[];
+}
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  const { showAlert } = useAlert();
   const [user, setUser] = useState<any>(null);
 
-  // Reload user data whenever screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       loadUserData();
@@ -20,7 +39,12 @@ export default function ProfileScreen() {
     try {
       const userJson = await AsyncStorage.getItem('user');
       if (userJson) {
-        setUser(JSON.parse(userJson));
+        const userData = JSON.parse(userJson);
+        // Ensure full_name is set (handles both old and new data formats)
+        if (!userData.full_name && (userData.first_name || userData.last_name)) {
+          userData.full_name = `${userData.first_name || ''} ${userData.last_name || ''}`.trim();
+        }
+        setUser(userData);
       }
     } catch (error) {
       console.error('Load user error:', error);
@@ -28,42 +52,47 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: async () => {
-          await AsyncStorage.removeItem('token');
-          await AsyncStorage.removeItem('user');
-          navigation.reset({ index: 0, routes: [{ name: 'Auth' as never }] });
+    showAlert({
+      type: 'confirm',
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('token');
+            await AsyncStorage.removeItem('user');
+            navigation.reset({ index: 0, routes: [{ name: 'Auth' as never }] });
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
-  const menuSections = [
+  const menuSections: MenuSection[] = [
     {
       section: 'Account',
       items: [
-        { icon: '👤', title: 'Edit Profile', screen: 'EditProfile', available: true },
-        { icon: '🔒', title: 'Change Password', screen: 'ChangePassword', available: true },
+        { icon: 'user', title: 'Edit Profile', screen: 'EditProfile', available: true },
+        { icon: 'lock', title: 'Change Password', screen: 'ChangePassword', available: true },
       ],
     },
     {
       section: 'Bookings',
       items: [
-        { icon: '📅', title: 'Active Bookings', screen: 'ActiveBookings', available: true },
-        { icon: '📋', title: 'Past Bookings', screen: 'PastBookings', available: true },
-        { icon: '❤️', title: 'Favorites', screen: 'Favorites', available: true },
+        { icon: 'calendar', title: 'Active Bookings', screen: 'ActiveBookings', available: true },
+        { icon: 'clipboard', title: 'Past Bookings', screen: 'PastBookings', available: true },
+        { icon: 'heart', title: 'Favorites', screen: 'Favorites', available: true },
       ],
     },
     {
       section: 'Support',
       items: [
-        { icon: '❓', title: 'Help Center', screen: 'HelpCenter', available: true },
-        { icon: '📞', title: 'Contact Support', screen: 'ContactSupport', available: true },
-        { icon: '⭐', title: 'Rate App', screen: 'RateApp', available: true },
+        { icon: 'help-circle', title: 'Help Center', screen: 'HelpCenter', available: true },
+        { icon: 'phone', title: 'Contact Support', screen: 'ContactSupport', available: true },
+        { icon: 'star', title: 'Rate App', screen: 'RateApp', available: true },
       ],
     },
   ];
@@ -71,18 +100,20 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.profileSection}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {user?.full_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || '?'}
-              </Text>
-            </View>
+            <AvatarImage
+              source={user?.profile_image_url}
+              name={user?.full_name || user?.email}
+              size={80}
+            />
             <Text style={styles.name}>{user?.full_name || 'User'}</Text>
             <Text style={styles.email}>{user?.email || ''}</Text>
           </View>
         </View>
 
+        {/* Menu Sections */}
         <View style={styles.content}>
           {menuSections.map((section, sectionIndex) => (
             <View key={sectionIndex} style={styles.section}>
@@ -98,22 +129,35 @@ export default function ProfileScreen() {
                       Alert.alert('Coming Soon', `${item.title} feature is coming soon!`);
                     }
                   }}
+                  activeOpacity={0.7}
                 >
                   <View style={styles.menuItemLeft}>
-                    <Text style={styles.menuIcon}>{item.icon}</Text>
+                    <View style={styles.iconContainer}>
+                      <Icon 
+                        name={item.icon} 
+                        size={20} 
+                        color={item.color || COLORS.primary} 
+                      />
+                    </View>
                     <Text style={styles.menuTitle}>{item.title}</Text>
                   </View>
-                  <Text style={styles.menuArrow}>→</Text>
+                  <Icon name="chevron-right" size={20} color={COLORS.textLight} />
                 </TouchableOpacity>
               ))}
             </View>
           ))}
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutIcon}>🚪</Text>
+          {/* Logout Button */}
+          <TouchableOpacity 
+            style={styles.logoutBtn} 
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Icon name="log-out" size={20} color={COLORS.error} />
             <Text style={styles.logoutText}>Logout</Text>
           </TouchableOpacity>
 
+          {/* Version */}
           <Text style={styles.version}>Version 1.0.0</Text>
         </View>
       </ScrollView>
@@ -122,23 +166,98 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  header: { backgroundColor: COLORS.primary, paddingTop: 60, paddingBottom: SIZES.xl, borderBottomLeftRadius: SIZES.radiusLarge, borderBottomRightRadius: SIZES.radiusLarge },
-  profileSection: { alignItems: 'center' },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.md },
-  avatarText: { fontSize: 32, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
-  name: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white, marginBottom: SIZES.xs },
-  email: { fontSize: SIZES.body, color: COLORS.white, opacity: 0.9 },
-  content: { padding: SIZES.paddingHorizontal },
-  section: { marginTop: SIZES.lg, marginBottom: SIZES.md },
-  sectionTitle: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.bold, color: COLORS.textSecondary, marginBottom: SIZES.sm, textTransform: 'uppercase', letterSpacing: 1 },
-  menuItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: COLORS.white, paddingVertical: SIZES.md, paddingHorizontal: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.xs, ...SHADOWS.small },
-  menuItemLeft: { flexDirection: 'row', alignItems: 'center' },
-  menuIcon: { fontSize: 24, marginRight: SIZES.md },
-  menuTitle: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.medium, color: COLORS.text },
-  menuArrow: { fontSize: 20, color: COLORS.textSecondary },
-  logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.errorLight, paddingVertical: SIZES.md, borderRadius: SIZES.radius, marginTop: SIZES.xl, marginBottom: SIZES.lg },
-  logoutIcon: { fontSize: 20, marginRight: SIZES.sm },
-  logoutText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.error },
-  version: { fontSize: SIZES.caption, color: COLORS.textSecondary, textAlign: 'center', marginBottom: SIZES.xl },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  header: { 
+    backgroundColor: COLORS.primary, 
+    paddingTop: 60, 
+    paddingBottom: SIZES.xl, 
+    borderBottomLeftRadius: SIZES.radiusXL, 
+    borderBottomRightRadius: SIZES.radiusXL 
+  },
+  profileSection: { 
+    alignItems: 'center' 
+  },
+  name: { 
+    fontFamily: FONTS.bold,
+    fontSize: SIZES.h2, 
+    color: COLORS.white, 
+    marginTop: SIZES.md,
+    marginBottom: SIZES.xs 
+  },
+  email: { 
+    fontFamily: FONTS.regular,
+    fontSize: SIZES.body, 
+    color: COLORS.white, 
+    opacity: 0.9 
+  },
+  content: { 
+    padding: SIZES.paddingHorizontal 
+  },
+  section: { 
+    marginTop: SIZES.lg, 
+    marginBottom: SIZES.md 
+  },
+  sectionTitle: { 
+    fontFamily: FONTS.bold,
+    fontSize: SIZES.caption, 
+    color: COLORS.textSecondary, 
+    marginBottom: SIZES.sm, 
+    textTransform: 'uppercase', 
+    letterSpacing: 1 
+  },
+  menuItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    backgroundColor: COLORS.white, 
+    paddingVertical: SIZES.md, 
+    paddingHorizontal: SIZES.md, 
+    borderRadius: SIZES.radius, 
+    marginBottom: SIZES.xs, 
+    ...SHADOWS.small 
+  },
+  menuItemLeft: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primaryAlpha,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SIZES.md,
+  },
+  menuTitle: { 
+    fontFamily: FONTS.medium,
+    fontSize: SIZES.body, 
+    color: COLORS.text 
+  },
+  logoutBtn: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    backgroundColor: COLORS.errorLight, 
+    paddingVertical: SIZES.md, 
+    borderRadius: SIZES.radius, 
+    marginTop: SIZES.xl, 
+    marginBottom: SIZES.lg,
+    gap: SIZES.sm,
+  },
+  logoutText: { 
+    fontFamily: FONTS.semiBold,
+    fontSize: SIZES.body, 
+    color: COLORS.error 
+  },
+  version: { 
+    fontFamily: FONTS.regular,
+    fontSize: SIZES.caption, 
+    color: COLORS.textSecondary, 
+    textAlign: 'center', 
+    marginBottom: SIZES.xl 
+  },
 });

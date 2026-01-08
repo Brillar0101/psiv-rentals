@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 
 export default function SortScreen() {
   return (
@@ -13,6 +13,6 @@ export default function SortScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', padding: SIZES.padding },
-  title: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  title: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });

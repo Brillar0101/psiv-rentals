@@ -40,7 +40,10 @@ const Dashboard: React.FC = () => {
         <Navbar />
         <Sidebar />
         <main className="main-content">
-          <p>Loading...</p>
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p className="loading-text">Loading dashboard...</p>
+          </div>
         </main>
       </div>
     );
@@ -53,38 +56,40 @@ const Dashboard: React.FC = () => {
     <div className="dashboard-layout">
       <Navbar />
       <Sidebar />
-      
+
       <main className="main-content">
         <div className="page-header">
-          <h1>Dashboard</h1>
-          <p>Welcome back! Here's your equipment rental overview.</p>
+          <div>
+            <h1>Dashboard</h1>
+            <p>Welcome back! Here's your equipment rental overview.</p>
+          </div>
         </div>
 
         {/* Stats Cards */}
         <div className="stats-grid">
           <StatsCard
-            icon="📷"
+            icon="camera"
             title="Total Equipment"
             value={stats?.totalEquipment || 0}
-            color="#007bff"
+            variant="primary"
           />
           <StatsCard
-            icon="📅"
+            icon="calendar"
             title="Total Bookings"
             value={stats?.totalBookings || 0}
-            color="#28a745"
+            variant="success"
           />
           <StatsCard
-            icon="💰"
+            icon="dollar-sign"
             title="Total Revenue"
             value={`$${totalRevenue.toFixed(2)}`}
-            color="#ffc107"
+            variant="warning"
           />
           <StatsCard
-            icon="📁"
+            icon="folder"
             title="Categories"
             value={stats?.totalCategories || 0}
-            color="#17a2b8"
+            variant="info"
           />
         </div>
 

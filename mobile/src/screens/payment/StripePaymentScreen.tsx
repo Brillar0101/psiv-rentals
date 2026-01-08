@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { CardField, useStripe } from '@stripe/stripe-react-native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 import { paymentAPI } from '../../services/api';
 
 export default function StripePaymentScreen() {
@@ -98,7 +99,7 @@ export default function StripePaymentScreen() {
       } else if (paymentIntent) {
         // Payment succeeded!
         Alert.alert(
-          'Payment Successful! 🎉',
+          'Payment Successful!',
           'Your booking is confirmed.',
           [
             {
@@ -182,16 +183,19 @@ export default function StripePaymentScreen() {
             />
 
             <View style={styles.testCardInfo}>
-              <Text style={styles.testCardTitle}>💡 Test Card</Text>
+              <View style={styles.testCardTitleRow}>
+                <Icon name="info" size={16} color={COLORS.info} style={{ marginRight: SIZES.xs }} />
+                <Text style={styles.testCardTitle}>Test Card</Text>
+              </View>
               <Text style={styles.testCardText}>4242 4242 4242 4242</Text>
-              <Text style={styles.testCardText}>Any future date • Any CVC</Text>
+              <Text style={styles.testCardText}>Any future date - Any CVC</Text>
             </View>
           </View>
         )}
 
         {/* Security Info */}
         <View style={styles.securityInfo}>
-          <Text style={styles.securityIcon}>🔒</Text>
+          <Icon name="lock" size={24} color={COLORS.success} style={{ marginRight: SIZES.sm }} />
           <Text style={styles.securityText}>
             Your payment is secure and encrypted by Stripe
           </Text>
@@ -215,26 +219,26 @@ export default function StripePaymentScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
-  headerTitle: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text },
   content: { flex: 1, padding: SIZES.paddingHorizontal },
   summaryCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, marginTop: SIZES.md, ...SHADOWS.card },
-  summaryTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  summaryTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.sm },
   summaryLabel: { fontSize: SIZES.body, color: COLORS.textSecondary },
-  summaryValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  summaryValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   totalRow: { marginTop: SIZES.md, paddingTop: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border },
-  totalLabel: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
-  totalValue: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  totalLabel: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text },
+  totalValue: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.primary },
   loadingCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.xxl, marginTop: SIZES.md, alignItems: 'center', ...SHADOWS.card },
   loadingText: { fontSize: SIZES.body, color: COLORS.textSecondary, marginTop: SIZES.md },
   cardInputCard: { backgroundColor: COLORS.white, borderRadius: SIZES.radiusLarge, padding: SIZES.lg, marginTop: SIZES.md, ...SHADOWS.card },
-  cardInputTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  cardInputTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
   cardField: { width: '100%', height: 50, marginVertical: SIZES.md },
   testCardInfo: { backgroundColor: COLORS.infoLight, padding: SIZES.md, borderRadius: SIZES.radius, marginTop: SIZES.md },
-  testCardTitle: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, marginBottom: SIZES.xs },
+  testCardTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: SIZES.xs },
+  testCardTitle: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.text },
   testCardText: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   securityInfo: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, padding: SIZES.md, borderRadius: SIZES.radius, marginTop: SIZES.md },
-  securityIcon: { fontSize: 24, marginRight: SIZES.sm },
   securityText: { flex: 1, fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
   footer: { backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingVertical: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOWS.large },
 });

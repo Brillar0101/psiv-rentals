@@ -8,17 +8,19 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
+import { useAlert } from '../../components/ui/AlertModal';
 import { bookingAPI } from '../../services/api';
 
 export default function DateSelectionScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { showAlert } = useAlert();
   const { equipmentId } = route.params as any;
 
   const [startDate, setStartDate] = useState('');
@@ -43,7 +45,11 @@ export default function DateSelectionScreen() {
     } else if (startDate && !endDate) {
       // Complete selection
       if (dateString < startDate) {
-        Alert.alert('Invalid Date', 'End date must be after start date');
+        showAlert({
+          type: 'warning',
+          title: 'Invalid Date',
+          message: 'End date must be after start date',
+        });
         return;
       }
 
@@ -90,7 +96,11 @@ export default function DateSelectionScreen() {
 
   const handleContinue = async () => {
     if (!startDate || !endDate) {
-      Alert.alert('Select Dates', 'Please select both start and end dates');
+      showAlert({
+        type: 'info',
+        title: 'Select Dates',
+        message: 'Please select both start and end dates',
+      });
       return;
     }
 
@@ -105,74 +115,60 @@ export default function DateSelectionScreen() {
 
       console.log('Availability response:', response);
 
-      // Handle different response structures
+      // Check if request was successful
       if (response && response.success) {
-        // Extract pricing - it's in response.pricing, not response.data.pricing
-        const pricing = response.pricing || response.data?.pricing || {
-          total_days: calculateDays(),
-          subtotal: 0,
-          damage_deposit: 0,
-          tax: 0,
-          total_amount: 0,
-        };
-
-        console.log('Extracted pricing:', pricing); // Debug log
-
-        navigation.navigate('AddToCartConfirm' as never, {
-          equipmentId,
-          startDate,
-          endDate,
-          pricing,
-        } as never);
-      } else if (response && response.data && response.data.available === false) {
-        Alert.alert(
-          'Not Available',
-          response.data.message || 'This equipment is not available for the selected dates. Please choose different dates.'
-        );
-      } else {
-        // If no clear response, proceed anyway (for development)
-        navigation.navigate('AddToCartConfirm' as never, {
-          equipmentId,
-          startDate,
-          endDate,
-          pricing: {
-            total_days: calculateDays(),
-            subtotal: 0,
+        // Check if equipment is available
+        if (response.available === true) {
+          // Equipment is available, proceed with pricing
+          const pricing = response.pricing || {
+            days: calculateDays(),
+            daily_rate: 0,
+            rental_amount: 0,
             damage_deposit: 0,
             tax: 0,
-            total_amount: 0,
-          },
-        } as never);
+            total: 0,
+          };
+
+          navigation.navigate('AddToCartConfirm' as never, {
+            equipmentId,
+            startDate,
+            endDate,
+            pricing: {
+              total_days: pricing.days,
+              daily_rate: pricing.daily_rate,
+              subtotal: pricing.rental_amount,
+              damage_deposit: pricing.damage_deposit,
+              tax: pricing.tax,
+              total_amount: pricing.total,
+            },
+          } as never);
+        } else {
+          // Equipment is not available
+          showAlert({
+            type: 'warning',
+            title: 'Not Available',
+            message: response.message || 'This equipment is not available for the selected dates. Please choose different dates.',
+          });
+        }
+      } else {
+        // API returned error
+        showAlert({
+          type: 'error',
+          title: 'Error',
+          message: response?.error || 'Failed to check availability. Please try again.',
+        });
       }
     } catch (error: any) {
       console.error('Availability check failed:', error);
       console.error('Error details:', error.response?.data);
-      
-      // For development, allow proceeding anyway
-      Alert.alert(
-        'Continue Anyway?',
-        'Could not verify availability. Continue with booking?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Continue',
-            onPress: () => {
-              navigation.navigate('AddToCartConfirm' as never, {
-                equipmentId,
-                startDate,
-                endDate,
-                pricing: {
-                  total_days: calculateDays(),
-                  subtotal: 0,
-                  damage_deposit: 0,
-                  tax: 0,
-                  total_amount: 0,
-                },
-              } as never);
-            },
-          },
-        ]
-      );
+
+      // Show error message from API if available
+      const errorMessage = error.response?.data?.error || 'Could not verify availability. Please try again.';
+      showAlert({
+        type: 'error',
+        title: 'Connection Error',
+        message: errorMessage,
+      });
     } finally {
       setLoading(false);
     }
@@ -186,7 +182,7 @@ export default function DateSelectionScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Select Dates</Text>
         <View style={{ width: 40 }} />
@@ -195,11 +191,19 @@ export default function DateSelectionScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Instructions */}
         <View style={styles.instructions}>
-          <Text style={styles.instructionsText}>
-            {!startDate ? '📅 Tap to select start date' :
-             !endDate ? '📅 Tap to select end date' :
-             '✓ Dates selected'}
-          </Text>
+          <View style={styles.instructionsContent}>
+            <Icon
+              name={!startDate || !endDate ? 'calendar' : 'check'}
+              size={20}
+              color={COLORS.primary}
+              style={{ marginRight: SIZES.xs }}
+            />
+            <Text style={styles.instructionsText}>
+              {!startDate ? 'Tap to select start date' :
+               !endDate ? 'Tap to select end date' :
+               'Dates selected'}
+            </Text>
+          </View>
         </View>
 
         {/* Calendar */}
@@ -241,7 +245,7 @@ export default function DateSelectionScreen() {
               </View>
 
               <View style={styles.arrow}>
-                <Text style={styles.arrowIcon}>→</Text>
+                <Icon name="arrow-right" size={24} color={COLORS.primary} />
               </View>
 
               <View style={styles.dateBox}>
@@ -297,13 +301,9 @@ const styles = StyleSheet.create({
     paddingBottom: SIZES.md,
     backgroundColor: COLORS.white,
   },
-  backIcon: {
-    fontSize: 28,
-    color: COLORS.text,
-  },
   title: {
     fontSize: SIZES.h3,
-    fontWeight: FONT_WEIGHTS.bold,
+    fontFamily: FONTS.bold,
     color: COLORS.text,
   },
   instructions: {
@@ -313,11 +313,15 @@ const styles = StyleSheet.create({
     marginTop: SIZES.md,
     borderRadius: SIZES.radius,
   },
+  instructionsContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   instructionsText: {
     fontSize: SIZES.body,
     color: COLORS.primary,
-    fontWeight: FONT_WEIGHTS.semiBold,
-    textAlign: 'center',
+    fontFamily: FONTS.semiBold,
   },
   calendarContainer: {
     backgroundColor: COLORS.white,
@@ -352,15 +356,11 @@ const styles = StyleSheet.create({
   },
   dateValue: {
     fontSize: SIZES.body,
-    fontWeight: FONT_WEIGHTS.semiBold,
+    fontFamily: FONTS.semiBold,
     color: COLORS.text,
   },
   arrow: {
     marginHorizontal: SIZES.md,
-  },
-  arrowIcon: {
-    fontSize: 24,
-    color: COLORS.primary,
   },
   durationBox: {
     backgroundColor: COLORS.primaryAlpha,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   durationValue: {
     fontSize: SIZES.h4,
-    fontWeight: FONT_WEIGHTS.bold,
+    fontFamily: FONTS.bold,
     color: COLORS.primary,
   },
   footer: {

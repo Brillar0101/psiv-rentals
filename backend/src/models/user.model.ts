@@ -14,6 +14,10 @@ export interface User {
   phone?: string;
   role: 'customer' | 'admin';
   profile_image_url?: string;
+  terms_accepted?: boolean;
+  terms_accepted_at?: Date;
+  data_collection_consent?: boolean;
+  data_collection_consent_at?: Date;
   created_at: Date;
   updated_at: Date;
 }
@@ -25,6 +29,8 @@ export interface CreateUserDTO {
   last_name: string;
   phone?: string;
   role?: 'customer' | 'admin';
+  terms_accepted?: boolean;
+  data_collection_consent?: boolean;
 }
 
 /**
@@ -43,11 +49,16 @@ export class UserModel {
       const password_hash = await bcrypt.hash(userData.password, salt);
 
       const query = `
-        INSERT INTO users (email, password_hash, first_name, last_name, phone, role)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id, email, first_name, last_name, phone, role, created_at, updated_at
+        INSERT INTO users (
+          email, password_hash, first_name, last_name, phone, role,
+          terms_accepted, terms_accepted_at, data_collection_consent, data_collection_consent_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING id, email, first_name, last_name, phone, role,
+                  terms_accepted, data_collection_consent, created_at, updated_at
       `;
 
+      const now = new Date();
       const values = [
         userData.email.toLowerCase(),
         password_hash,
@@ -55,6 +66,10 @@ export class UserModel {
         userData.last_name,
         userData.phone || null,
         userData.role || 'customer',
+        userData.terms_accepted || false,
+        userData.terms_accepted ? now : null,
+        userData.data_collection_consent || false,
+        userData.data_collection_consent ? now : null,
       ];
 
       const result = await pool.query(query, values);

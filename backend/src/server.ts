@@ -13,7 +13,9 @@ import categoryRoutes from './routes/category.routes';
 import bookingRoutes from './routes/booking.routes';
 import paymentRoutes from './routes/payment.routes';
 import cartRoutes from './routes/cart.routes';
-import reviewRoutes from './routes/review.routes';  // ← NEW!
+import reviewRoutes from './routes/review.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import promoRoutes from './routes/promo.routes';
 
 // Load environment variables
 dotenv.config();
@@ -63,8 +65,14 @@ app.use('/api/payment', paymentRoutes);
 // Cart routes
 app.use('/api/cart', cartRoutes);
 
-// Review routes ← NEW!
+// Review routes
 app.use('/api/reviews', reviewRoutes);
+
+// Analytics routes (search tracking)
+app.use('/api/analytics', analyticsRoutes);
+
+// Promo codes and credits routes
+app.use('/api/promo', promoRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {

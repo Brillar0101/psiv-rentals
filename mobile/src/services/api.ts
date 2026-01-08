@@ -5,7 +5,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 
-const API_URL = 'http://192.168.68.100:5000/api';
+const API_URL = 'http://10.0.0.171:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -49,9 +49,22 @@ api.interceptors.response.use(
   }
 );
 
+// Search parameters interface
+export interface SearchParams {
+  search?: string;
+  category_id?: string;
+  min_price?: number;
+  max_price?: number;
+  condition?: string;
+  available_only?: boolean;
+  sort_by?: 'price_asc' | 'price_desc' | 'popularity' | 'rating' | 'newest';
+  limit?: number;
+  page?: number;
+}
+
 export const equipmentAPI = {
-  getAll: async () => {
-    const response = await api.get('/equipment');
+  getAll: async (params?: SearchParams) => {
+    const response = await api.get('/equipment', { params });
     return response.data;
   },
   getById: async (id: string) => {
@@ -66,8 +79,10 @@ export const equipmentAPI = {
     const response = await api.get(`/equipment/featured?limit=${limit}`);
     return response.data;
   },
-  search: async (query: string) => {
-    const response = await api.get(`/equipment/search?q=${query}`);
+  search: async (query: string, options?: Omit<SearchParams, 'search'>) => {
+    const response = await api.get('/equipment', {
+      params: { search: query, ...options }
+    });
     return response.data;
   },
 };
@@ -85,12 +100,8 @@ export const bookingAPI = {
       return { success: false, data: [] };
     }
   },
-  checkAvailability: async (equipmentId: string, startDate: string, endDate: string) => {
-    const response = await api.post('/bookings/check-availability', {
-      equipment_id: equipmentId,
-      start_date: startDate,
-      end_date: endDate,
-    });
+  checkAvailability: async (data: { equipment_id: string; start_date: string; end_date: string }) => {
+    const response = await api.post('/bookings/check-availability', data);
     return response.data;
   },
   createBooking: async (bookingData: any) => {
@@ -118,18 +129,44 @@ export const categoryAPI = {
   },
 };
 
+export interface SignupData {
+  email: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  terms_accepted: boolean;
+  data_collection_consent: boolean;
+}
+
 export const authAPI = {
   login: async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password });
     return response.data;
   },
-  signup: async (email: string, password: string, full_name: string) => {
-    const response = await api.post('/auth/signup', { email, password, full_name });
+  signup: async (data: SignupData) => {
+    const response = await api.post('/auth/signup', data);
     return response.data;
   },
   getProfile: async () => {
     const response = await api.get('/auth/me');
     return response.data;
+  },
+};
+
+// Search Analytics API - Track what users search for
+export const analyticsAPI = {
+  logSearch: async (query: string, resultsCount: number, selectedItemId?: string) => {
+    try {
+      await api.post('/analytics/search', {
+        query,
+        results_count: resultsCount,
+        selected_item_id: selectedItemId,
+      });
+    } catch (error) {
+      // Silently fail - analytics shouldn't break the app
+      console.log('Analytics log failed:', error);
+    }
   },
 };
 
@@ -165,6 +202,75 @@ export const cartAPI = {
   checkout: async (paymentMethodId?: string) => {
     const response = await api.post('/cart/checkout', { payment_method_id: paymentMethodId });
     return response.data;
+  },
+  // Checkout with promo code and/or credits (for zero-payment or discounted orders)
+  checkoutWithDiscounts: async (data: {
+    promo_code?: string;
+    use_credits?: number;
+    payment_method_id?: string;
+  }) => {
+    const response = await api.post('/cart/checkout', data);
+    return response.data;
+  },
+};
+
+// Promo Codes and Credits API
+export const promoAPI = {
+  // Validate a promo code before applying
+  validateCode: async (code: string, orderTotal: number) => {
+    try {
+      const response = await api.post('/promo/validate', { code, order_total: orderTotal });
+      return response.data;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Invalid promo code',
+      };
+    }
+  },
+
+  // Apply a promo code to an order
+  applyCode: async (code: string, orderTotal: number, bookingId?: string) => {
+    try {
+      const response = await api.post('/promo/apply', {
+        code,
+        order_total: orderTotal,
+        booking_id: bookingId,
+      });
+      return response.data;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to apply promo code',
+      };
+    }
+  },
+
+  // Get user's credit balance and history
+  getCredits: async () => {
+    try {
+      const response = await api.get('/promo/credits');
+      return response.data;
+    } catch (error: any) {
+      console.error('Get credits error:', error);
+      return { success: false, data: { balance: 0, transactions: [] } };
+    }
+  },
+
+  // Use credits for a booking
+  useCredits: async (amount: number, bookingId?: string) => {
+    try {
+      const response = await api.post('/promo/credits/use', {
+        amount,
+        booking_id: bookingId,
+      });
+      return response.data;
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to use credits',
+      };
+    }
   },
 };
 

@@ -1,12 +1,57 @@
 // src/pages/Equipment.tsx
-// Equipment Management Page - Add, edit, delete equipment
+// Equipment Management Page - Add, edit, delete equipment with image upload
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import Cropper, { Area } from 'react-easy-crop';
+import { Plus, Edit2, Trash2, X, Upload, Folder, ArrowRight } from 'react-feather';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { equipmentAPI, categoryAPI } from '../services/api';
 import { Equipment as EquipmentType, Category } from '../types';
 import '../styles/Equipment.css';
+
+// Helper function to create cropped image
+const createCroppedImage = async (
+  imageSrc: string,
+  pixelCrop: Area
+): Promise<Blob> => {
+  const image = new Image();
+  image.src = imageSrc;
+  await new Promise((resolve) => (image.onload = resolve));
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('No 2d context');
+
+  // Set canvas size to the cropped area
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  // Draw the cropped image
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  // Convert to blob
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Failed to create blob'));
+      },
+      'image/jpeg',
+      0.9
+    );
+  });
+};
 
 const Equipment: React.FC = () => {
   const [equipment, setEquipment] = useState<EquipmentType[]>([]);
@@ -14,6 +59,19 @@ const Equipment: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<EquipmentType | null>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cropper state
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [croppedImages, setCroppedImages] = useState<Blob[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -102,7 +160,128 @@ const Equipment: React.FC = () => {
       quantity_total: item.quantity_total.toString(),
       condition: item.condition,
     });
+    setImages(item.images || []);
     setShowModal(true);
+  };
+
+  // Cropper callbacks
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editingEquipment || !e.target.files || e.target.files.length === 0) {
+      return;
+    }
+
+    const remainingSlots = 10 - images.length;
+    if (e.target.files.length > remainingSlots) {
+      alert(`Can only upload ${remainingSlots} more image(s). Maximum is 10.`);
+      return;
+    }
+
+    // Store files and start cropping process
+    const files = Array.from(e.target.files);
+    setPendingFiles(files);
+    setCroppedImages([]);
+    setCurrentFileIndex(0);
+
+    // Load first image for cropping
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setShowCropper(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.readAsDataURL(files[0]);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropConfirm = async () => {
+    if (!imageToCrop || !croppedAreaPixels) return;
+
+    try {
+      // Create cropped image blob
+      const croppedBlob = await createCroppedImage(imageToCrop, croppedAreaPixels);
+      const newCroppedImages = [...croppedImages, croppedBlob];
+      setCroppedImages(newCroppedImages);
+
+      // Check if there are more images to crop
+      const nextIndex = currentFileIndex + 1;
+      if (nextIndex < pendingFiles.length) {
+        // Load next image
+        setCurrentFileIndex(nextIndex);
+        const reader = new FileReader();
+        reader.onload = () => {
+          setImageToCrop(reader.result as string);
+          setCrop({ x: 0, y: 0 });
+          setZoom(1);
+        };
+        reader.readAsDataURL(pendingFiles[nextIndex]);
+      } else {
+        // All images cropped, upload them
+        setShowCropper(false);
+        await uploadCroppedImages(newCroppedImages);
+      }
+    } catch (error) {
+      console.error('Error cropping image:', error);
+      alert('Failed to crop image');
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setImageToCrop(null);
+    setPendingFiles([]);
+    setCroppedImages([]);
+    setCurrentFileIndex(0);
+  };
+
+  const uploadCroppedImages = async (blobs: Blob[]) => {
+    if (!editingEquipment) return;
+
+    setUploadingImages(true);
+    try {
+      // Convert blobs to files
+      const dataTransfer = new DataTransfer();
+      blobs.forEach((blob, index) => {
+        const file = new File([blob], `image-${Date.now()}-${index}.jpg`, { type: 'image/jpeg' });
+        dataTransfer.items.add(file);
+      });
+
+      const response = await equipmentAPI.uploadImages(editingEquipment.id, dataTransfer.files);
+      setImages(response.data.data.images);
+      alert('Images uploaded successfully!');
+    } catch (error: any) {
+      console.error('Failed to upload images:', error);
+      alert(error.response?.data?.error || 'Failed to upload images');
+    } finally {
+      setUploadingImages(false);
+      setPendingFiles([]);
+      setCroppedImages([]);
+      setCurrentFileIndex(0);
+    }
+  };
+
+  const handleImageDelete = async (imageUrl: string) => {
+    if (!editingEquipment) return;
+
+    if (!window.confirm('Are you sure you want to delete this image?')) {
+      return;
+    }
+
+    try {
+      const response = await equipmentAPI.deleteImage(editingEquipment.id, imageUrl);
+      setImages(response.data.data.images);
+      alert('Image deleted successfully!');
+    } catch (error: any) {
+      console.error('Failed to delete image:', error);
+      alert(error.response?.data?.error || 'Failed to delete image');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -135,6 +314,7 @@ const Equipment: React.FC = () => {
       condition: 'excellent',
     });
     setEditingEquipment(null);
+    setImages([]);
   };
 
   const handleAddNew = () => {
@@ -233,33 +413,45 @@ const Equipment: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="equipment-form">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Equipment Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Equipment Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
 
-                  <div className="form-group">
-                    <label>Category</label>
-                    <select
-                      name="category_id"
-                      value={formData.category_id}
-                      onChange={handleInputChange}
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Category Selection - Enhanced for editing */}
+                <div className="form-group category-section">
+                  <label>
+                    <Folder size={16} style={{ marginRight: 8, verticalAlign: 'middle' }} />
+                    {editingEquipment ? 'Move to Category' : 'Category'}
+                  </label>
+                  {editingEquipment && editingEquipment.category_name && formData.category_id !== editingEquipment.category_id && (
+                    <div className="category-change-indicator">
+                      <span className="current-category">{editingEquipment.category_name}</span>
+                      <ArrowRight size={16} />
+                      <span className="new-category">
+                        {categories.find(c => c.id === formData.category_id)?.name || 'No Category'}
+                      </span>
+                    </div>
+                  )}
+                  <select
+                    name="category_id"
+                    value={formData.category_id}
+                    onChange={handleInputChange}
+                    className={editingEquipment && formData.category_id !== editingEquipment.category_id ? 'category-changed' : ''}
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="form-row">
@@ -374,6 +566,66 @@ const Equipment: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Image Upload Section - Only show when editing */}
+                {editingEquipment && (
+                  <div className="form-group image-upload-section">
+                    <label>Equipment Images ({images.length}/10)</label>
+
+                    {/* Image Gallery */}
+                    {images.length > 0 && (
+                      <div className="image-gallery">
+                        {images.map((url, index) => (
+                          <div key={index} className="image-item">
+                            <img src={url} alt={`Equipment ${index + 1}`} />
+                            <button
+                              type="button"
+                              className="image-delete-btn"
+                              onClick={() => handleImageDelete(url)}
+                              title="Delete image"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Upload Button */}
+                    {images.length < 10 && (
+                      <div className="image-upload-controls">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          multiple
+                          onChange={handleImageSelect}
+                          style={{ display: 'none' }}
+                          id="image-upload-input"
+                        />
+                        <button
+                          type="button"
+                          className="btn-upload"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingImages}
+                        >
+                          {uploadingImages ? 'Uploading...' : '+ Add Images'}
+                        </button>
+                        <span className="upload-hint">
+                          Max 5MB per image. Supported: JPEG, PNG, WebP, GIF
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!editingEquipment && (
+                  <div className="form-group">
+                    <p className="info-note">
+                      Save the equipment first, then edit it to add images.
+                    </p>
+                  </div>
+                )}
+
                 <div className="form-actions">
                   <button
                     type="button"
@@ -387,6 +639,61 @@ const Equipment: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Image Cropper Modal */}
+        {showCropper && imageToCrop && (
+          <div className="cropper-modal-overlay">
+            <div className="cropper-modal">
+              <div className="cropper-header">
+                <h3>Crop Image ({currentFileIndex + 1} of {pendingFiles.length})</h3>
+                <p>Drag to reposition, scroll to zoom. Images will be cropped to 1:1 square.</p>
+              </div>
+
+              <div className="cropper-container">
+                <Cropper
+                  image={imageToCrop}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
+
+              <div className="cropper-controls">
+                <label>
+                  Zoom:
+                  <input
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    value={zoom}
+                    onChange={(e) => setZoom(Number(e.target.value))}
+                  />
+                </label>
+              </div>
+
+              <div className="cropper-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={handleCropCancel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn-submit"
+                  onClick={handleCropConfirm}
+                >
+                  {currentFileIndex + 1 < pendingFiles.length ? 'Next Image' : 'Crop & Upload'}
+                </button>
+              </div>
             </div>
           </div>
         )}

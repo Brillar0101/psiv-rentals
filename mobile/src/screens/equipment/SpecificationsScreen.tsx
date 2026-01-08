@@ -1,17 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import { Icon } from '../../components/ui/Icon';
 
-export default function ${screen}() {
+export default function SpecificationsScreen() {
   const navigation = useNavigation();
-  
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backIcon}>←</Text>
+        <Icon name="arrow-left" size={28} color={COLORS.text} />
       </TouchableOpacity>
-      <Text style={styles.title}>${screen}</Text>
+      <Text style={styles.title}>SpecificationsScreen</Text>
       <Text style={styles.subtitle}>Coming soon!</Text>
     </View>
   );
@@ -20,7 +21,6 @@ export default function ${screen}() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white, padding: SIZES.padding, paddingTop: 60 },
   backButton: { marginBottom: SIZES.lg },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  title: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  title: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });

@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
 
 export default function PaymentMethodScreen() {
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
   backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   illustrationContainer: { alignItems: 'center', paddingVertical: SIZES.xl },
   illustration: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.primaryAlpha, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.md },
   illustrationIcon: { fontSize: 48 },
@@ -192,23 +192,23 @@ const styles = StyleSheet.create({
   methodIconSelected: { backgroundColor: COLORS.primary },
   methodIconText: { fontSize: 24 },
   methodInfo: { flex: 1 },
-  methodName: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  methodName: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   methodDescription: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   methodRight: {},
   radioOuter: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: COLORS.border, justifyContent: 'center', alignItems: 'center' },
   radioOuterSelected: { borderColor: COLORS.primary },
   radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.primary },
   comingSoonBadge: { backgroundColor: COLORS.infoLight, paddingHorizontal: SIZES.sm, paddingVertical: 4, borderRadius: SIZES.radiusPill },
-  comingSoonText: { fontSize: SIZES.caption, color: COLORS.textSecondary, fontWeight: FONT_WEIGHTS.semiBold },
+  comingSoonText: { fontSize: SIZES.caption, color: COLORS.textSecondary, fontFamily: FONTS.semiBold },
   securityBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, padding: SIZES.lg, marginHorizontal: SIZES.paddingHorizontal, borderRadius: SIZES.radiusLarge, marginTop: SIZES.md, ...SHADOWS.small },
   securityIcon: { fontSize: 32, marginRight: SIZES.md },
   securityText: { flex: 1 },
-  securityTitle: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  securityTitle: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   securitySubtitle: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   acceptedCards: { paddingHorizontal: SIZES.paddingHorizontal, marginTop: SIZES.lg },
   acceptedTitle: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary, marginBottom: SIZES.sm, textAlign: 'center' },
   cardLogos: { flexDirection: 'row', justifyContent: 'center', gap: SIZES.sm },
   cardLogo: { width: 56, height: 36, borderRadius: SIZES.radius, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
-  cardLogoText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  cardLogoText: { fontSize: SIZES.caption, fontFamily: FONTS.bold, color: COLORS.text },
   footer: { backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingVertical: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOWS.large },
 });

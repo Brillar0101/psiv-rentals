@@ -1,8 +1,9 @@
 // src/pages/Login.tsx
-// Admin Login Page
+// Admin Login Page with Feather icons
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Film, AlertCircle } from 'react-feather';
 import { authAPI } from '../services/api';
 import '../styles/Login.css';
 
@@ -45,14 +46,18 @@ const Login: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>🎬 PSIV Rentals</h1>
+          <div className="login-logo">
+            <Film size={32} />
+          </div>
+          <h1>PSIV Rentals</h1>
           <h2>Admin Dashboard</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
           {error && (
             <div className="error-message">
-              {error}
+              <AlertCircle size={18} />
+              <span>{error}</span>
             </div>
           )}
 

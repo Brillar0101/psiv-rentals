@@ -7,17 +7,21 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Image,
+  ActionSheetIOS,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import * as ImagePicker from 'expo-image-picker';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
+import { useAlert } from '../../components/ui/AlertModal';
 import api from '../../services/api';
 
 const US_STATES = [
@@ -82,10 +86,13 @@ const COUNTRIES = [
 
 export default function EditProfileScreen() {
   const navigation = useNavigation();
+  const { showAlert } = useAlert();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showStateDropdown, setShowStateDropdown] = useState(false);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
@@ -106,8 +113,10 @@ export default function EditProfileScreen() {
       const userJson = await AsyncStorage.getItem('user');
       if (userJson) {
         const user = JSON.parse(userJson);
+        // Handle both full_name and first_name/last_name formats
+        const fullName = user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim();
         setFormData({
-          full_name: user.full_name || '',
+          full_name: fullName,
           email: user.email || '',
           phone: user.phone || '',
           address: user.address || '',
@@ -116,6 +125,7 @@ export default function EditProfileScreen() {
           zip_code: user.zip_code || '',
           country: user.country || 'USA',
         });
+        setProfileImageUrl(user.profile_image_url || null);
       }
     } catch (error) {
       console.error('Load profile error:', error);
@@ -124,12 +134,184 @@ export default function EditProfileScreen() {
     }
   };
 
+  const pickImage = async (useCamera: boolean) => {
+    try {
+      // Request permissions
+      if (useCamera) {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+          showAlert({
+            type: 'warning',
+            title: 'Permission Required',
+            message: 'Camera permission is needed to take photos.',
+          });
+          return;
+        }
+      } else {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          showAlert({
+            type: 'warning',
+            title: 'Permission Required',
+            message: 'Photo library permission is needed to select photos.',
+          });
+          return;
+        }
+      }
+
+      const result = useCamera
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+
+      if (!result.canceled && result.assets[0]) {
+        await uploadProfileImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
+      showAlert({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to select image',
+      });
+    }
+  };
+
+  const uploadProfileImage = async (uri: string) => {
+    setUploadingImage(true);
+    try {
+      const formDataUpload = new FormData();
+      const filename = uri.split('/').pop() || 'photo.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      formDataUpload.append('image', {
+        uri,
+        name: filename,
+        type,
+      } as any);
+
+      const response = await api.post('/auth/profile/picture', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.success) {
+        const newImageUrl = response.data.data.profile_image_url;
+        setProfileImageUrl(newImageUrl);
+
+        // Update local storage
+        const userJson = await AsyncStorage.getItem('user');
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          user.profile_image_url = newImageUrl;
+          await AsyncStorage.setItem('user', JSON.stringify(user));
+        }
+
+        showAlert({
+          type: 'success',
+          title: 'Success',
+          message: 'Profile picture updated!',
+        });
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      showAlert({
+        type: 'error',
+        title: 'Upload Failed',
+        message: error.response?.data?.error || 'Failed to upload image',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleChangePhoto = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose from Library', ...(profileImageUrl ? ['Remove Photo'] : [])],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: profileImageUrl ? 3 : undefined,
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 1) {
+            pickImage(true);
+          } else if (buttonIndex === 2) {
+            pickImage(false);
+          } else if (buttonIndex === 3 && profileImageUrl) {
+            handleRemovePhoto();
+          }
+        }
+      );
+    } else {
+      // For Android, show custom alert with options
+      showAlert({
+        type: 'confirm',
+        title: 'Change Profile Photo',
+        message: 'Choose an option',
+        buttons: [
+          { text: 'Take Photo', onPress: () => pickImage(true) },
+          { text: 'Choose from Library', onPress: () => pickImage(false) },
+          ...(profileImageUrl ? [{ text: 'Remove Photo', style: 'destructive' as const, onPress: handleRemovePhoto }] : []),
+          { text: 'Cancel', style: 'cancel' as const },
+        ],
+      });
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setUploadingImage(true);
+    try {
+      const response = await api.delete('/auth/profile/picture');
+      if (response.data.success) {
+        setProfileImageUrl(null);
+
+        // Update local storage
+        const userJson = await AsyncStorage.getItem('user');
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          user.profile_image_url = null;
+          await AsyncStorage.setItem('user', JSON.stringify(user));
+        }
+
+        showAlert({
+          type: 'success',
+          title: 'Success',
+          message: 'Profile picture removed',
+        });
+      }
+    } catch (error: any) {
+      showAlert({
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to remove photo',
+      });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.full_name || !formData.email) {
-      Alert.alert('Missing Information', 'Name and email are required');
+      showAlert({
+        type: 'warning',
+        title: 'Missing Information',
+        message: 'Name and email are required',
+      });
       return;
     }
-    
+
     Keyboard.dismiss();
     setSaving(true);
     try {
@@ -141,12 +323,21 @@ export default function EditProfileScreen() {
           const updatedUser = { ...user, ...formData };
           await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
         }
-        Alert.alert('Success', 'Profile updated successfully!', [
-          { text: 'OK', onPress: () => navigation.goBack() }
-        ]);
+        showAlert({
+          type: 'success',
+          title: 'Success',
+          message: 'Profile updated successfully!',
+          buttons: [
+            { text: 'OK', onPress: () => navigation.goBack() }
+          ],
+        });
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to update profile');
+      showAlert({
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.error || 'Failed to update profile',
+      });
     } finally {
       setSaving(false);
     }
@@ -156,7 +347,7 @@ export default function EditProfileScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.backIcon}>←</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}><Icon name="arrow-left" size={28} color={COLORS.text} /></TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Profile</Text>
           <View style={{ width: 40 }} />
         </View>
@@ -170,17 +361,41 @@ export default function EditProfileScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.backIcon}>←</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()}><Icon name="arrow-left" size={28} color={COLORS.text} /></TouchableOpacity>
             <Text style={styles.headerTitle}>Edit Profile</Text>
             <View style={{ width: 40 }} />
           </View>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
             <View style={styles.content}>
               <View style={styles.avatarSection}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{formData.full_name.charAt(0).toUpperCase() || '?'}</Text>
-                </View>
-                <TouchableOpacity style={styles.changePhotoBtn}><Text style={styles.changePhotoText}>Change Photo</Text></TouchableOpacity>
+                <TouchableOpacity onPress={handleChangePhoto} disabled={uploadingImage}>
+                  <View style={styles.avatarContainer}>
+                    {profileImageUrl ? (
+                      <Image source={{ uri: profileImageUrl }} style={styles.avatarImage} />
+                    ) : (
+                      <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>
+                          {formData.full_name
+                            .split(' ')
+                            .map(n => n[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2) || '?'}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={styles.cameraIconContainer}>
+                      {uploadingImage ? (
+                        <ActivityIndicator size="small" color={COLORS.white} />
+                      ) : (
+                        <Icon name="camera" size={16} color={COLORS.white} />
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.changePhotoBtn} onPress={handleChangePhoto} disabled={uploadingImage}>
+                  <Text style={styles.changePhotoText}>{uploadingImage ? 'Uploading...' : 'Change Photo'}</Text>
+                </TouchableOpacity>
               </View>
               <View style={styles.form}>
                 <View style={styles.inputGroup}>
@@ -263,18 +478,20 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content: { padding: SIZES.paddingHorizontal },
   avatarSection: { alignItems: 'center', marginVertical: SIZES.xl },
-  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.md },
-  avatarText: { fontSize: 40, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white },
+  avatarContainer: { position: 'relative', marginBottom: SIZES.md },
+  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
+  avatarImage: { width: 100, height: 100, borderRadius: 50 },
+  avatarText: { fontSize: 36, fontFamily: FONTS.bold, color: COLORS.white },
+  cameraIconContainer: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: COLORS.white },
   changePhotoBtn: { paddingVertical: SIZES.sm },
-  changePhotoText: { fontSize: SIZES.body, color: COLORS.primary, fontWeight: FONT_WEIGHTS.semiBold },
+  changePhotoText: { fontSize: SIZES.body, color: COLORS.primary, fontFamily: FONTS.semiBold },
   form: { marginTop: SIZES.md },
   inputGroup: { marginBottom: SIZES.lg },
-  label: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, marginBottom: SIZES.sm },
+  label: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.text, marginBottom: SIZES.sm },
   input: { backgroundColor: COLORS.white, borderRadius: SIZES.radius, paddingHorizontal: SIZES.md, paddingVertical: SIZES.md, fontSize: SIZES.body, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border, ...SHADOWS.small },
   row: { flexDirection: 'row' },
   dropdown: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: SIZES.radius, paddingHorizontal: SIZES.md, paddingVertical: SIZES.md, borderWidth: 1, borderColor: COLORS.border, ...SHADOWS.small },

@@ -1,7 +1,7 @@
 // src/screens/payment/ProcessingScreen.tsx
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 
 export default function ProcessingScreen() {
   return (
@@ -15,6 +15,6 @@ export default function ProcessingScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', padding: SIZES.padding },
-  title: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginTop: SIZES.lg, marginBottom: SIZES.sm },
+  title: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginTop: SIZES.lg, marginBottom: SIZES.sm },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });

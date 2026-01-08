@@ -1,10 +1,19 @@
 // src/navigation/MainNavigator.tsx
+// FIXED: Professional Feather icons with Rubik font
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { COLORS, SIZES } from '../constants/theme';
+import { COLORS, SIZES, FONTS } from '../constants/theme';
 import { useCartStore } from '../store/cartStore';
+import {
+  Icon,
+  HomeIcon,
+  SearchIcon,
+  BookingsIcon,
+  CartIcon,
+  ProfileIcon,
+} from '../components/ui/Icon';
 
 // Import real screens
 import HomeScreen from '../screens/home/HomeScreen';
@@ -24,20 +33,9 @@ function CartBadge() {
   if (itemCount === 0) return null;
   
   return (
-    <View style={{
-      position: 'absolute',
-      top: -5,
-      right: -10,
-      backgroundColor: COLORS.error,
-      borderRadius: 10,
-      minWidth: 20,
-      height: 20,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 4,
-    }}>
-      <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-        {itemCount}
+    <View style={styles.badge}>
+      <Text style={styles.badgeText}>
+        {itemCount > 9 ? '9+' : itemCount}
       </Text>
     </View>
   );
@@ -50,17 +48,9 @@ function HomeTabs() {
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textLight,
-        tabBarStyle: {
-          height: SIZES.tabBarHeight,
-          paddingBottom: 10,
-          paddingTop: 10,
-          borderTopWidth: 1,
-          borderTopColor: COLORS.border,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabLabel,
+        tabBarItemStyle: styles.tabItem,
       }}
     >
       <Tab.Screen
@@ -68,7 +58,9 @@ function HomeTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>🏠</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <HomeIcon color={color} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -76,7 +68,9 @@ function HomeTabs() {
         component={SearchScreen}
         options={{
           tabBarLabel: 'Search',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>🔍</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <SearchIcon color={color} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -84,7 +78,9 @@ function HomeTabs() {
         component={MyBookingsScreen}
         options={{
           tabBarLabel: 'Bookings',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>📅</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <BookingsIcon color={color} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -92,9 +88,9 @@ function HomeTabs() {
         component={require('../screens/booking/CartScreen').default}
         options={{
           tabBarLabel: 'Cart',
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color, focused }) => (
             <View>
-              <Text style={{ fontSize: 24 }}>🛒</Text>
+              <CartIcon color={color} focused={focused} />
               <CartBadge />
             </View>
           ),
@@ -105,7 +101,9 @@ function HomeTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>👤</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <ProfileIcon color={color} focused={focused} />
+          ),
         }}
       />
     </Tab.Navigator>
@@ -141,17 +139,21 @@ export default function MainNavigator() {
       />
       
       {/* Payment Flow */}
-      <Stack.Screen 
-        name="PaymentMethod" 
+      <Stack.Screen
+        name="PaymentMethod"
         component={require('../screens/payment/PaymentMethodScreen').default}
       />
-      <Stack.Screen 
-        name="CardDetails" 
+      <Stack.Screen
+        name="CardDetails"
         component={require('../screens/payment/CardDetailsScreen').default}
       />
-      <Stack.Screen 
-        name="StripePayment" 
+      <Stack.Screen
+        name="StripePayment"
         component={require('../screens/payment/StripePaymentScreen').default}
+      />
+      <Stack.Screen
+        name="BookingConfirmation"
+        component={require('../screens/booking/BookingConfirmationScreen').default}
       />
       
       {/* Support */}
@@ -192,3 +194,46 @@ export default function MainNavigator() {
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    height: SIZES.tabBarHeight,
+    paddingBottom: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    elevation: 8,
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  tabLabel: {
+    fontFamily: FONTS.medium,
+    fontSize: 11,
+    marginTop: 4,
+  },
+  tabItem: {
+    paddingVertical: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    backgroundColor: COLORS.error,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: COLORS.white,
+  },
+  badgeText: {
+    fontFamily: FONTS.bold,
+    color: COLORS.white,
+    fontSize: 10,
+  },
+});

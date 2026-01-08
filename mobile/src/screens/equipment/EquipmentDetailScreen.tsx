@@ -11,16 +11,17 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
 import { equipmentAPI } from '../../services/api';
 import RateEquipmentModal from '../../components/RateEquipmentModal';
 import EquipmentReviews from '../../components/EquipmentReviews';
 import api from '../../services/api';
+import { Icon } from '../../components/ui/Icon';
+import { useAlert } from '../../components/ui/AlertModal';
 
 const { width } = Dimensions.get('window');
 const FAVORITES_KEY = '@favorites';
@@ -28,6 +29,7 @@ const FAVORITES_KEY = '@favorites';
 export default function EquipmentDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
+  const { showAlert } = useAlert();
   const { id } = route.params as any;
 
   const [equipment, setEquipment] = useState<any>(null);
@@ -89,7 +91,11 @@ export default function EquipmentDetailScreen() {
         // Remove from favorites
         favorites = favorites.filter((fav: any) => fav.id !== id);
         setIsFavorite(false);
-        Alert.alert('Removed', 'Removed from favorites');
+        showAlert({
+          type: 'info',
+          title: 'Removed',
+          message: 'Removed from favorites',
+        });
       } else {
         // Add to favorites
         const favoriteItem = {
@@ -104,13 +110,21 @@ export default function EquipmentDetailScreen() {
         };
         favorites.push(favoriteItem);
         setIsFavorite(true);
-        Alert.alert('Added! ❤️', 'Added to favorites');
+        showAlert({
+          type: 'success',
+          title: 'Added!',
+          message: 'Added to favorites',
+        });
       }
 
       await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
       console.error('Toggle favorite error:', error);
-      Alert.alert('Error', 'Failed to update favorites');
+      showAlert({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to update favorites',
+      });
     }
   };
 
@@ -166,19 +180,17 @@ export default function EquipmentDetailScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.favoriteButton, isFavorite && styles.favoriteButtonActive]}
           onPress={toggleFavorite}
         >
-          <Text style={styles.favoriteIcon}>
-            {isFavorite ? '❤️' : '♡'}
-          </Text>
+          <Icon name="heart" size={24} color={isFavorite ? COLORS.error : COLORS.text} />
         </TouchableOpacity>
       </View>
 
@@ -239,7 +251,10 @@ export default function EquipmentDetailScreen() {
               style={styles.viewAllButton}
               onPress={handleViewAll}
             >
-              <Text style={styles.viewAllText}>📷 View All ({images.length})</Text>
+              <View style={styles.viewAllContent}>
+                <Icon name="image" size={14} color={COLORS.text} />
+                <Text style={styles.viewAllText}>View All ({images.length})</Text>
+              </View>
             </TouchableOpacity>
           )}
         </View>
@@ -260,9 +275,12 @@ export default function EquipmentDetailScreen() {
                 styles.availabilityBadge,
                 equipment.quantity_available > 0 ? styles.availableBadge : styles.unavailableBadge
               ]}>
-                <Text style={styles.availabilityText}>
-                  {equipment.quantity_available > 0 ? '✓ Available' : '✕ Unavailable'}
-                </Text>
+                <View style={styles.availabilityContent}>
+                  <Icon name={equipment.quantity_available > 0 ? 'check-circle' : 'x-circle'} size={14} color={equipment.quantity_available > 0 ? COLORS.success : COLORS.error} />
+                  <Text style={[styles.availabilityText, { color: equipment.quantity_available > 0 ? COLORS.success : COLORS.error }]}>
+                    {equipment.quantity_available > 0 ? 'Available' : 'Unavailable'}
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -270,7 +288,8 @@ export default function EquipmentDetailScreen() {
             <View style={styles.ratingRow}>
               {equipment.average_rating > 0 ? (
                 <>
-                  <Text style={styles.ratingStars}>⭐ {equipment.average_rating.toFixed(1)}</Text>
+                  <Icon name="star" size={16} color={COLORS.accent} />
+                  <Text style={styles.ratingStars}>{equipment.average_rating.toFixed(1)}</Text>
                   <Text style={styles.ratingCount}>
                     ({equipment.review_count || 0} {equipment.review_count === 1 ? 'review' : 'reviews'})
                   </Text>
@@ -324,17 +343,23 @@ export default function EquipmentDetailScreen() {
           {/* Quick Info */}
           <View style={styles.quickInfo}>
             <View style={styles.infoCard}>
-              <Text style={styles.infoIcon}>📦</Text>
+              <View style={styles.infoIconContainer}>
+                <Icon name="box" size={20} color={COLORS.primary} />
+              </View>
               <Text style={styles.infoLabel}>Condition</Text>
               <Text style={styles.infoValue}>{equipment.condition}</Text>
             </View>
             <View style={styles.infoCard}>
-              <Text style={styles.infoIcon}>💰</Text>
+              <View style={styles.infoIconContainer}>
+                <Icon name="dollar-sign" size={20} color={COLORS.primary} />
+              </View>
               <Text style={styles.infoLabel}>Value</Text>
               <Text style={styles.infoValue}>${equipment.replacement_value}</Text>
             </View>
             <View style={styles.infoCard}>
-              <Text style={styles.infoIcon}>📋</Text>
+              <View style={styles.infoIconContainer}>
+                <Icon name="tag" size={20} color={COLORS.primary} />
+              </View>
               <Text style={styles.infoLabel}>Category</Text>
               <Text style={styles.infoValue}>{equipment.category_name || 'N/A'}</Text>
             </View>
@@ -345,7 +370,7 @@ export default function EquipmentDetailScreen() {
             style={styles.rateButton}
             onPress={() => setShowRatingModal(true)}
           >
-            <Text style={styles.rateButtonIcon}>⭐</Text>
+            <Icon name="star" size={20} color={COLORS.primary} style={{ marginRight: SIZES.sm }} />
             <Text style={styles.rateButtonText}>Rate This Product</Text>
           </TouchableOpacity>
 
@@ -395,53 +420,52 @@ const styles = StyleSheet.create({
   errorText: { fontSize: SIZES.body, color: COLORS.textSecondary },
   header: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, zIndex: 10 },
   backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
-  backIcon: { fontSize: 24, color: COLORS.text },
   favoriteButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', ...SHADOWS.small },
   favoriteButtonActive: { backgroundColor: COLORS.errorLight },
-  favoriteIcon: { fontSize: 24 },
   imageContainer: { position: 'relative', height: 400 },
   mainImage: { width, height: 400 },
   pagination: { position: 'absolute', bottom: 20, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: SIZES.xs },
   paginationDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: COLORS.white, opacity: 0.5 },
   paginationDotActive: { opacity: 1 },
   viewAllButton: { position: 'absolute', bottom: 20, right: 20, backgroundColor: COLORS.white, paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm, borderRadius: SIZES.radiusPill, ...SHADOWS.small },
-  viewAllText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  viewAllContent: { flexDirection: 'row', alignItems: 'center', gap: SIZES.xs },
+  viewAllText: { fontSize: SIZES.caption, fontFamily: FONTS.semiBold, color: COLORS.text },
   imageCounter: { position: 'absolute', top: 20, right: 20, backgroundColor: 'rgba(0, 0, 0, 0.7)', paddingHorizontal: SIZES.md, paddingVertical: SIZES.xs, borderRadius: SIZES.radiusPill },
-  imageCounterText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white },
+  imageCounterText: { fontSize: SIZES.caption, fontFamily: FONTS.semiBold, color: COLORS.white },
   content: { backgroundColor: COLORS.white, borderTopLeftRadius: SIZES.radiusXL, borderTopRightRadius: SIZES.radiusXL, marginTop: -20, paddingTop: SIZES.lg, paddingHorizontal: SIZES.paddingHorizontal },
   titleSection: { marginBottom: SIZES.lg },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SIZES.sm },
-  title: { fontSize: SIZES.h2, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  title: { fontSize: SIZES.h2, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   brand: { fontSize: SIZES.body, color: COLORS.textSecondary },
   availabilityBadge: { paddingHorizontal: SIZES.md, paddingVertical: SIZES.xs, borderRadius: SIZES.radiusPill },
   availableBadge: { backgroundColor: COLORS.successLight },
   unavailableBadge: { backgroundColor: COLORS.errorLight },
-  availabilityText: { fontSize: SIZES.caption, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  availabilityContent: { flexDirection: 'row', alignItems: 'center', gap: SIZES.xs },
+  availabilityText: { fontSize: SIZES.caption, fontFamily: FONTS.semiBold },
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: SIZES.sm },
-  ratingStars: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  ratingStars: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   ratingCount: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
   pricingSection: { backgroundColor: COLORS.primaryAlpha, padding: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.lg },
   priceRow: { flexDirection: 'row', gap: SIZES.xl, marginBottom: SIZES.xs },
   priceLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  price: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  price: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.primary },
   depositText: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   section: { marginBottom: SIZES.lg },
-  sectionTitle: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.md },
+  sectionTitle: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.md },
   description: { fontSize: SIZES.body, color: COLORS.textSecondary, lineHeight: 24 },
   specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: SIZES.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   specLabel: { fontSize: SIZES.body, color: COLORS.textSecondary },
-  specValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  specValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   quickInfo: { flexDirection: 'row', gap: SIZES.md, marginBottom: SIZES.lg },
   infoCard: { flex: 1, backgroundColor: COLORS.background, padding: SIZES.md, borderRadius: SIZES.radius, alignItems: 'center' },
-  infoIcon: { fontSize: 24, marginBottom: SIZES.xs },
+  infoIconContainer: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.primaryAlpha, justifyContent: 'center', alignItems: 'center', marginBottom: SIZES.xs },
   infoLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  infoValue: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, textTransform: 'capitalize' },
+  infoValue: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.text, textTransform: 'capitalize' },
   rateButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primaryAlpha, paddingVertical: SIZES.md, borderRadius: SIZES.radius, marginBottom: SIZES.lg },
-  rateButtonIcon: { fontSize: 20, marginRight: SIZES.sm },
-  rateButtonText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.primary },
+  rateButtonText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.primary },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, paddingHorizontal: SIZES.paddingHorizontal, paddingVertical: SIZES.md, borderTopWidth: 1, borderTopColor: COLORS.border, ...SHADOWS.large },
   footerPrice: { flex: 1 },
   footerPriceLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary },
-  footerPriceValue: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  footerPriceValue: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.primary },
   bookButton: { flex: 1 },
 });

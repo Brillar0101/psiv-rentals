@@ -15,8 +15,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 import { authAPI } from '../../services/api';
 
 export default function LoginScreen() {
@@ -78,7 +79,9 @@ export default function LoginScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.logo}>🎬</Text>
+            <View style={styles.logoContainer}>
+              <Icon name="film" size={80} color={COLORS.primary} />
+            </View>
             <Text style={styles.title}>PSIV Rentals</Text>
             <Text style={styles.subtitle}>Welcome back!</Text>
           </View>
@@ -139,14 +142,14 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   content: { flex: 1, justifyContent: 'center', padding: SIZES.paddingHorizontal },
   header: { alignItems: 'center', marginBottom: SIZES.xxl },
-  logo: { fontSize: 80, marginBottom: SIZES.md },
-  title: { fontSize: SIZES.h1, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  logoContainer: { marginBottom: SIZES.md },
+  title: { fontSize: SIZES.h1, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
   form: { marginTop: SIZES.xl },
   inputGroup: { marginBottom: SIZES.lg },
-  label: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, marginBottom: SIZES.sm },
+  label: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.text, marginBottom: SIZES.sm },
   input: { backgroundColor: COLORS.white, borderRadius: SIZES.radius, paddingHorizontal: SIZES.md, paddingVertical: SIZES.md, fontSize: SIZES.body, color: COLORS.text, borderWidth: 1, borderColor: COLORS.border, ...SHADOWS.small },
   signupLink: { marginTop: SIZES.xl, alignItems: 'center' },
   signupText: { fontSize: SIZES.body, color: COLORS.textSecondary },
-  signupTextBold: { color: COLORS.primary, fontWeight: FONT_WEIGHTS.bold },
+  signupTextBold: { color: COLORS.primary, fontFamily: FONTS.bold },
 });

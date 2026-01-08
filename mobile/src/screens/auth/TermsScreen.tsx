@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 
 export default function TermsScreen() {
   return (
@@ -12,5 +12,5 @@ export default function TermsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', padding: SIZES.padding },
-  text: { fontSize: SIZES.h3, color: COLORS.text, fontWeight: FONT_WEIGHTS.semiBold },
+  text: { fontSize: SIZES.h3, color: COLORS.text, fontFamily: FONTS.semiBold },
 });

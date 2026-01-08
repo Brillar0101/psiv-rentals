@@ -218,6 +218,98 @@ router.delete('/', authenticate, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/cart/admin/all
+ * @desc    Get all active carts (Admin only - see what's in customer carts)
+ * @access  Private (Admin)
+ */
+router.get('/admin/all', authenticate, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user?.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required',
+      });
+    }
+
+    // Get all cart items grouped by user
+    const result = await pool.query(
+      `SELECT
+        u.id as user_id,
+        u.email,
+        u.first_name,
+        u.last_name,
+        json_agg(json_build_object(
+          'cart_item_id', ci.id,
+          'equipment_id', ci.equipment_id,
+          'equipment_name', e.name,
+          'equipment_brand', e.brand,
+          'quantity', ci.quantity,
+          'daily_rate', e.daily_rate,
+          'start_date', ci.start_date,
+          'end_date', ci.end_date,
+          'days', (ci.end_date - ci.start_date),
+          'subtotal', CASE
+            WHEN (ci.end_date - ci.start_date) >= 7
+            THEN e.weekly_rate * ci.quantity * CEIL((ci.end_date - ci.start_date)::numeric / 7)
+            ELSE e.daily_rate * ci.quantity * (ci.end_date - ci.start_date)
+          END,
+          'added_at', ci.created_at
+        )) as cart_items,
+        COUNT(ci.id) as item_count,
+        SUM(CASE
+          WHEN (ci.end_date - ci.start_date) >= 7
+          THEN e.weekly_rate * ci.quantity * CEIL((ci.end_date - ci.start_date)::numeric / 7)
+          ELSE e.daily_rate * ci.quantity * (ci.end_date - ci.start_date)
+        END) as cart_total
+      FROM cart_items ci
+      JOIN users u ON ci.user_id = u.id
+      JOIN equipment e ON ci.equipment_id = e.id
+      GROUP BY u.id, u.email, u.first_name, u.last_name
+      ORDER BY cart_total DESC`
+    );
+
+    // Get summary stats
+    const statsResult = await pool.query(
+      `SELECT
+        COUNT(DISTINCT user_id) as users_with_carts,
+        COUNT(*) as total_cart_items,
+        SUM(quantity) as total_units_in_carts
+      FROM cart_items`
+    );
+
+    // Get equipment demand (what's most added to carts)
+    const demandResult = await pool.query(
+      `SELECT
+        e.id,
+        e.name,
+        e.brand,
+        e.quantity_available,
+        SUM(ci.quantity) as units_in_carts,
+        COUNT(DISTINCT ci.user_id) as unique_users
+      FROM cart_items ci
+      JOIN equipment e ON ci.equipment_id = e.id
+      GROUP BY e.id, e.name, e.brand, e.quantity_available
+      ORDER BY units_in_carts DESC
+      LIMIT 10`
+    );
+
+    res.json({
+      success: true,
+      data: {
+        summary: statsResult.rows[0],
+        carts: result.rows,
+        equipment_demand: demandResult.rows,
+      },
+      message: 'All active carts retrieved',
+    });
+  } catch (error: any) {
+    console.error('Get all carts error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Checkout - Convert cart to bookings
 router.post('/checkout', authenticate, async (req, res) => {
   const client = await pool.connect();

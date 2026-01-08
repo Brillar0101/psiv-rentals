@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Equipment from './pages/Equipment';
 import Bookings from './pages/Bookings';
 import Categories from './pages/Categories';
+import PromoCodes from './pages/PromoCodes';
 import './styles/App.css';
 
 // Protected Route Component
@@ -62,7 +63,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
+
+        <Route
+          path="/promo-codes"
+          element={
+            <ProtectedRoute>
+              <PromoCodes />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </Router>

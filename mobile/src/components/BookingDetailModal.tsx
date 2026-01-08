@@ -11,8 +11,9 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../constants/theme';
 import { bookingAPI } from '../services/api';
+import { Icon } from './ui/Icon';
 
 interface BookingDetailModalProps {
   visible: boolean;
@@ -91,7 +92,7 @@ export default function BookingDetailModal({ visible, booking, onClose, onRefres
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Booking Details</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeButton}>✕</Text>
+              <Icon name="x" size={28} color={COLORS.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -204,33 +205,32 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modal: { backgroundColor: COLORS.white, borderTopLeftRadius: SIZES.radiusXL, borderTopRightRadius: SIZES.radiusXL, maxHeight: '90%' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: SIZES.lg, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
-  closeButton: { fontSize: 28, color: COLORS.textSecondary },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   content: { padding: SIZES.lg },
   statusBanner: { padding: SIZES.md, borderRadius: SIZES.radiusLarge, marginBottom: SIZES.lg, alignItems: 'center' },
-  statusText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold },
+  statusText: { fontSize: SIZES.body, fontFamily: FONTS.bold },
   section: { marginBottom: SIZES.xl },
-  sectionTitle: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.textSecondary, marginBottom: SIZES.sm, textTransform: 'uppercase' },
-  equipmentName: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  sectionTitle: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.textSecondary, marginBottom: SIZES.sm, textTransform: 'uppercase' },
+  equipmentName: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   dateRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dateBox: { flex: 1, backgroundColor: COLORS.background, padding: SIZES.md, borderRadius: SIZES.radiusLarge },
   dateLabel: { fontSize: SIZES.caption, color: COLORS.textSecondary, marginBottom: SIZES.xs },
-  dateValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text },
+  dateValue: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text },
   dateArrow: { fontSize: SIZES.h3, color: COLORS.textLight, marginHorizontal: SIZES.sm },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.sm },
   priceLabel: { fontSize: SIZES.body, color: COLORS.textSecondary },
-  priceValue: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.medium, color: COLORS.text },
+  priceValue: { fontSize: SIZES.body, fontFamily: FONTS.medium, color: COLORS.text },
   totalRow: { borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: SIZES.sm, marginTop: SIZES.sm },
-  totalLabel: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
-  totalValue: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary },
+  totalLabel: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.text },
+  totalValue: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.primary },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SIZES.xs },
   infoLabel: { fontSize: SIZES.bodySmall, color: COLORS.textSecondary },
-  infoValue: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.medium, color: COLORS.text },
+  infoValue: { fontSize: SIZES.bodySmall, fontFamily: FONTS.medium, color: COLORS.text },
   actions: { padding: SIZES.lg, borderTopWidth: 1, borderTopColor: COLORS.border },
   retryButton: { backgroundColor: COLORS.primary, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill, marginBottom: SIZES.sm },
-  retryButtonText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white, textAlign: 'center' },
+  retryButtonText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.white, textAlign: 'center' },
   cancelButton: { backgroundColor: COLORS.errorLight, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill },
-  cancelButtonText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.error, textAlign: 'center' },
+  cancelButtonText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.error, textAlign: 'center' },
   closeButtonFull: { backgroundColor: COLORS.background, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill },
-  closeButtonText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.text, textAlign: 'center' },
+  closeButtonText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.text, textAlign: 'center' },
 });

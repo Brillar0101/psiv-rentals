@@ -1,11 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
+import { Icon } from '../../components/ui/Icon';
 
 export default function EmptyStateScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.emoji}>⚠️</Text>
+      <View style={styles.iconContainer}>
+        <Icon name="inbox" size={64} color={COLORS.textLight} />
+      </View>
       <Text style={styles.title}>EmptyStateScreen</Text>
       <Text style={styles.subtitle}>This is a utility screen</Text>
     </View>
@@ -14,7 +17,7 @@ export default function EmptyStateScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.white, justifyContent: 'center', alignItems: 'center', padding: SIZES.padding },
-  emoji: { fontSize: 64, marginBottom: SIZES.md },
-  title: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  iconContainer: { marginBottom: SIZES.md },
+  title: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });

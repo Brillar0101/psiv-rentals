@@ -16,13 +16,22 @@ export class AuthController {
    */
   static async signup(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password, first_name, last_name, phone } = req.body;
+      const { email, password, first_name, last_name, phone, terms_accepted, data_collection_consent } = req.body;
 
       // Validation
       if (!email || !password || !first_name || !last_name) {
         res.status(400).json({
           success: false,
           error: 'Please provide email, password, first name, and last name',
+        });
+        return;
+      }
+
+      // Terms & Conditions validation
+      if (!terms_accepted) {
+        res.status(400).json({
+          success: false,
+          error: 'You must accept the Terms & Conditions to create an account',
         });
         return;
       }
@@ -54,6 +63,8 @@ export class AuthController {
         last_name,
         phone,
         role: 'customer', // Default role
+        terms_accepted: terms_accepted || false,
+        data_collection_consent: data_collection_consent || false,
       });
 
       // Generate JWT token
@@ -65,13 +76,14 @@ export class AuthController {
 
       res.status(201).json({
         success: true,
-        message: 'User registered successfully! 🎉',
+        message: 'User registered successfully!',
         data: {
           user: {
             id: user.id,
             email: user.email,
             first_name: user.first_name,
             last_name: user.last_name,
+            full_name: `${user.first_name} ${user.last_name}`.trim(),
             role: user.role,
           },
           token,
@@ -146,14 +158,17 @@ export class AuthController {
 
       res.json({
         success: true,
-        message: 'Login successful! 🎉',
+        message: 'Login successful!',
         data: {
           user: {
             id: user.id,
             email: user.email,
             first_name: user.first_name,
             last_name: user.last_name,
+            full_name: `${user.first_name} ${user.last_name}`.trim(),
+            phone: user.phone,
             role: user.role,
+            profile_image_url: user.profile_image_url,
           },
           token,
         },
@@ -199,8 +214,10 @@ export class AuthController {
           email: user.email,
           first_name: user.first_name,
           last_name: user.last_name,
+          full_name: `${user.first_name} ${user.last_name}`.trim(),
           phone: user.phone,
           role: user.role,
+          profile_image_url: user.profile_image_url,
           created_at: user.created_at,
         },
       });

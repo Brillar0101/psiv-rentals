@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
+import { Icon, getCategoryIcon } from '../../components/ui/Icon';
 import { categoryAPI } from '../../services/api';
 
 export default function CategoriesScreen() {
@@ -42,7 +43,7 @@ export default function CategoriesScreen() {
       onPress={() => (navigation as any).navigate('CategoryDetail', { categoryId: item.id })}
     >
       <View style={styles.categoryIcon}>
-        <Text style={styles.categoryIconText}>{item.icon || '📦'}</Text>
+        <Icon name={getCategoryIcon(item.name)} size={32} color={COLORS.primary} />
       </View>
       <View style={styles.categoryInfo}>
         <Text style={styles.categoryName}>{item.name}</Text>
@@ -50,7 +51,7 @@ export default function CategoriesScreen() {
           {item.description || 'Browse all equipment in this category'}
         </Text>
       </View>
-      <Text style={styles.arrow}>→</Text>
+      <Icon name="chevron-right" size={24} color={COLORS.textLight} />
     </TouchableOpacity>
   );
 
@@ -59,7 +60,7 @@ export default function CategoriesScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>All Categories</Text>
         <View style={{ width: 40 }} />
@@ -78,7 +79,9 @@ export default function CategoriesScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>📦</Text>
+              <View style={styles.emptyIconContainer}>
+                <Icon name="box" size={80} color={COLORS.textLight} />
+              </View>
               <Text style={styles.emptyTitle}>No Categories</Text>
               <Text style={styles.emptySubtitle}>Categories will appear here</Text>
             </View>
@@ -92,19 +95,16 @@ export default function CategoriesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: SIZES.paddingHorizontal },
   categoryCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, padding: SIZES.md, borderRadius: SIZES.radiusLarge, marginBottom: SIZES.md, ...SHADOWS.card },
   categoryIcon: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.primaryAlpha, justifyContent: 'center', alignItems: 'center', marginRight: SIZES.md },
-  categoryIconText: { fontSize: 32 },
   categoryInfo: { flex: 1 },
-  categoryName: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  categoryName: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   categoryDescription: { fontSize: SIZES.caption, color: COLORS.textSecondary },
-  arrow: { fontSize: 24, color: COLORS.textLight, marginLeft: SIZES.sm },
   empty: { alignItems: 'center', paddingVertical: SIZES.xxl * 2 },
-  emptyIcon: { fontSize: 80, marginBottom: SIZES.lg },
-  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  emptyIconContainer: { marginBottom: SIZES.lg },
+  emptyTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   emptySubtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });

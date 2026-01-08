@@ -12,27 +12,28 @@ import {
   Animated,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon, IconName } from '../../components/ui/Icon';
 
 const { width } = Dimensions.get('window');
 
-const slides = [
+const slides: { id: string; icon: IconName; title: string; description: string }[] = [
   {
     id: '1',
-    emoji: '📷',
+    icon: 'camera',
     title: 'Professional Equipment',
     description: 'Rent high-end cameras, lenses, and audio gear for your next project',
   },
   {
     id: '2',
-    emoji: '📅',
+    icon: 'calendar',
     title: 'Easy Booking',
     description: 'Check availability, book instantly, and manage your rentals in one place',
   },
   {
     id: '3',
-    emoji: '💳',
+    icon: 'credit-card',
     title: 'Secure Payments',
     description: 'Fast and secure checkout with Apple Pay, Google Pay, or credit card',
   },
@@ -64,8 +65,8 @@ export default function OnboardingScreen() {
 
   const renderItem = ({ item }: any) => (
     <View style={styles.slide}>
-      <View style={styles.emojiContainer}>
-        <Text style={styles.emoji}>{item.emoji}</Text>
+      <View style={styles.iconContainer}>
+        <Icon name={item.icon} size={72} color={COLORS.primary} />
       </View>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.description}>{item.description}</Text>
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontSize: SIZES.body,
     color: COLORS.primary,
-    fontWeight: FONT_WEIGHTS.semiBold,
+    fontFamily: FONTS.semiBold,
   },
   slide: {
     width,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: SIZES.paddingHorizontal * 2,
   },
-  emojiContainer: {
+  iconContainer: {
     width: 140,
     height: 140,
     borderRadius: 70,
@@ -166,12 +167,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SIZES.xxl,
   },
-  emoji: {
-    fontSize: 72,
-  },
   title: {
     fontSize: SIZES.h2,
-    fontWeight: FONT_WEIGHTS.bold,
+    fontFamily: FONTS.bold,
     color: COLORS.text,
     textAlign: 'center',
     marginBottom: SIZES.md,

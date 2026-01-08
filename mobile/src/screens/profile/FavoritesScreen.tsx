@@ -13,8 +13,9 @@ import {
   Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS, SHADOWS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS, SHADOWS } from '../../constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Icon } from '../../components/ui/Icon';
 
 const FAVORITES_KEY = '@favorites';
 
@@ -69,7 +70,7 @@ export default function FavoritesScreen() {
             <Text style={styles.brand}>{item.brand}</Text>
           </View>
           <TouchableOpacity style={styles.heartBtn} onPress={() => removeFavorite(item.id)}>
-            <Text style={styles.heartIcon}>❤️</Text>
+            <Icon name="heart" size={24} color={COLORS.error} />
           </TouchableOpacity>
         </View>
         <View style={styles.footer}>
@@ -89,7 +90,7 @@ export default function FavoritesScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.backIcon}>←</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.goBack()}><Icon name="arrow-left" size={28} color={COLORS.text} /></TouchableOpacity>
           <Text style={styles.headerTitle}>Favorites</Text>
           <View style={{ width: 40 }} />
         </View>
@@ -101,13 +102,15 @@ export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.backIcon}>←</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}><Icon name="arrow-left" size={28} color={COLORS.text} /></TouchableOpacity>
         <Text style={styles.headerTitle}>Favorites</Text>
         <View style={styles.badge}><Text style={styles.badgeText}>{favorites.length}</Text></View>
       </View>
       <FlatList data={favorites} renderItem={renderFavoriteCard} keyExtractor={(item: any) => item.id} contentContainerStyle={styles.list} numColumns={2} columnWrapperStyle={styles.row} showsVerticalScrollIndicator={false} ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>❤️</Text>
+          <View style={styles.emptyIconContainer}>
+            <Icon name="heart" size={64} color={COLORS.primary} />
+          </View>
           <Text style={styles.emptyTitle}>No Favorites Yet</Text>
           <Text style={styles.emptySubtitle}>Tap the heart icon on any equipment to save it here</Text>
           <TouchableOpacity style={styles.browseBtn} onPress={() => navigation.navigate('MainTabs' as never, { screen: 'Home' } as never)}>
@@ -122,10 +125,9 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white, ...SHADOWS.small },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  headerTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  headerTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   badge: { width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center' },
-  badgeText: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.bold, color: COLORS.white },
+  badgeText: { fontSize: SIZES.bodySmall, fontFamily: FONTS.bold, color: COLORS.white },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: SIZES.paddingHorizontal },
   row: { justifyContent: 'space-between' },
@@ -133,20 +135,19 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: 150, backgroundColor: COLORS.background },
   cardContent: { padding: SIZES.md },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: SIZES.sm },
-  equipmentName: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
+  equipmentName: { fontSize: SIZES.body, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.xs },
   brand: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   heartBtn: { padding: SIZES.xs },
-  heartIcon: { fontSize: 24 },
   footer: { marginTop: SIZES.sm },
   priceContainer: { marginBottom: SIZES.sm },
-  price: { fontSize: SIZES.h4, fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary, marginBottom: SIZES.xs },
+  price: { fontSize: SIZES.h4, fontFamily: FONTS.bold, color: COLORS.primary, marginBottom: SIZES.xs },
   weeklyPrice: { fontSize: SIZES.caption, color: COLORS.textSecondary },
   bookBtn: { backgroundColor: COLORS.primary, paddingVertical: SIZES.sm, borderRadius: SIZES.radiusPill, alignItems: 'center' },
-  bookBtnText: { fontSize: SIZES.bodySmall, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white },
+  bookBtnText: { fontSize: SIZES.bodySmall, fontFamily: FONTS.semiBold, color: COLORS.white },
   empty: { alignItems: 'center', paddingVertical: SIZES.xxl * 2, paddingHorizontal: SIZES.xl },
-  emptyIcon: { fontSize: 80, marginBottom: SIZES.lg },
-  emptyTitle: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
+  emptyIconContainer: { marginBottom: SIZES.lg },
+  emptyTitle: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text, marginBottom: SIZES.sm },
   emptySubtitle: { fontSize: SIZES.body, color: COLORS.textSecondary, marginBottom: SIZES.xl, textAlign: 'center' },
   browseBtn: { backgroundColor: COLORS.primary, paddingHorizontal: SIZES.xl, paddingVertical: SIZES.md, borderRadius: SIZES.radiusPill },
-  browseBtnText: { fontSize: SIZES.body, fontWeight: FONT_WEIGHTS.semiBold, color: COLORS.white },
+  browseBtnText: { fontSize: SIZES.body, fontFamily: FONTS.semiBold, color: COLORS.white },
 });

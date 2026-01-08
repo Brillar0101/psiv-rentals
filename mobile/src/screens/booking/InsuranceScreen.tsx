@@ -1,19 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS, SIZES, FONT_WEIGHTS } from '../../constants/theme';
+import { COLORS, SIZES, FONTS } from '../../constants/theme';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 
-export default function ${screen}() {
+export default function InsuranceScreen() {
   const navigation = useNavigation();
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backIcon}>←</Text>
+          <Icon name="arrow-left" size={28} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>${screen}</Text>
+        <Text style={styles.title}>InsuranceScreen</Text>
         <View style={{ width: 40 }} />
       </View>
       <View style={styles.content}>
@@ -27,8 +28,7 @@ export default function ${screen}() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SIZES.paddingHorizontal, paddingTop: 50, paddingBottom: SIZES.md, backgroundColor: COLORS.white },
-  backIcon: { fontSize: 28, color: COLORS.text },
-  title: { fontSize: SIZES.h3, fontWeight: FONT_WEIGHTS.bold, color: COLORS.text },
+  title: { fontSize: SIZES.h3, fontFamily: FONTS.bold, color: COLORS.text },
   content: { flex: 1, padding: SIZES.paddingHorizontal, justifyContent: 'center', alignItems: 'center' },
   subtitle: { fontSize: SIZES.body, color: COLORS.textSecondary },
 });
