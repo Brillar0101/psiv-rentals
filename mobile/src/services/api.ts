@@ -4,8 +4,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import Constants from 'expo-constants';
 
-const API_URL = 'http://10.0.0.171:5000/api';
+// API URL Configuration:
+// - In development: Set via app.config.js extra.apiUrl
+// - In production: Update the fallback URL below to your production API
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'https://api.psivrentals.com/api';
 
 const api = axios.create({
   baseURL: API_URL,

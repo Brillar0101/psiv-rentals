@@ -69,6 +69,7 @@ export interface Booking {
   total_amount: number;
   status: 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled';
   payment_status: 'pending' | 'paid' | 'refunded' | 'partial_refund';
+  payment_method?: 'card' | 'apple_pay' | 'google_pay' | 'cash' | 'credit' | 'promo' | 'debit';
   stripe_payment_id?: string;
   notes?: string;
   admin_notes?: string;

@@ -38,7 +38,7 @@ const Navbar: React.FC = () => {
           <div className="user-avatar">
             {getInitials()}
           </div>
-          <div>
+          <div className="user-details">
             <span className="user-name">
               {user?.first_name} {user?.last_name}
             </span>

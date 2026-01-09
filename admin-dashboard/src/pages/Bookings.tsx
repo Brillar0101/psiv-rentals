@@ -19,6 +19,9 @@ import {
   Mail,
   Phone,
   Package,
+  Smartphone,
+  DollarSign,
+  Gift,
 } from 'react-feather';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
@@ -211,6 +214,38 @@ const Bookings: React.FC = () => {
     }
   };
 
+  const getPaymentMethodDisplay = (booking: Booking) => {
+    // If payment_method is set, use it. Otherwise infer from booking state
+    const amount = parseFloat(booking.total_amount?.toString() || '0');
+    const method =
+      booking.payment_method ||
+      (booking.stripe_payment_id ? 'card' : null) ||
+      (amount === 0 && (booking.status === 'confirmed' || booking.status === 'active' || booking.status === 'completed')
+        ? 'promo'
+        : booking.status === 'pending'
+          ? 'pending'
+          : 'card');
+
+    switch (method) {
+      case 'card':
+        return { icon: <CreditCard size={14} />, label: 'Card', className: 'method-card' };
+      case 'debit':
+        return { icon: <CreditCard size={14} />, label: 'Debit', className: 'method-debit' };
+      case 'apple_pay':
+        return { icon: <Smartphone size={14} />, label: 'Apple Pay', className: 'method-apple' };
+      case 'google_pay':
+        return { icon: <Smartphone size={14} />, label: 'Google Pay', className: 'method-google' };
+      case 'cash':
+        return { icon: <DollarSign size={14} />, label: 'Cash', className: 'method-cash' };
+      case 'credit':
+        return { icon: <DollarSign size={14} />, label: 'Credit', className: 'method-credit' };
+      case 'promo':
+        return { icon: <Gift size={14} />, label: 'Promo', className: 'method-promo' };
+      default:
+        return { icon: <Clock size={14} />, label: 'Pending', className: 'method-pending' };
+    }
+  };
+
   const closeAllModals = () => {
     setShowDetailsModal(false);
     setShowCancelModal(false);
@@ -292,6 +327,7 @@ const Bookings: React.FC = () => {
                 <th>Equipment</th>
                 <th>Dates</th>
                 <th>Amount</th>
+                <th>Method</th>
                 <th>Payment</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -300,7 +336,7 @@ const Bookings: React.FC = () => {
             <tbody>
               {bookings.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="empty-state">
+                  <td colSpan={8} className="empty-state">
                     <AlertCircle size={24} />
                     <p>No bookings found</p>
                   </td>
@@ -335,6 +371,17 @@ const Bookings: React.FC = () => {
                     </td>
                     <td>
                       <strong>${parseFloat(booking.total_amount?.toString() || '0').toFixed(2)}</strong>
+                    </td>
+                    <td>
+                      {(() => {
+                        const methodInfo = getPaymentMethodDisplay(booking);
+                        return (
+                          <span className={`payment-method-badge ${methodInfo.className}`}>
+                            {methodInfo.icon}
+                            {methodInfo.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td>
                       <span
